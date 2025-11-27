@@ -2,6 +2,7 @@
 
 ## Build/Test/Lint Commands
 
+- **Setup venv**: `python -m venv venv && source venv/bin/activate` (Windows: `venv\Scripts\activate`)
 - **Install dependencies**: `pip install -r requirements.txt`
 - **Run tests**: `pytest tests/ -v`
 - **Run single test**: `pytest tests/test_file.py::test_function -v`
@@ -15,7 +16,7 @@
 **Key Components**:
 - **API Layer**: FastAPI endpoints (authentication, rate limiting, message routing)
 - **Fact-Checking Engine**: NLP-based claim extraction (spaCy/NLTK), verification against local DB and external sources (BeautifulSoup, APIs)
-- **Data Layer**: SQLite for cached facts, user history; external APIs (Snopes, FactCheck.org, Twitter)
+- **Data Layer**: SQLite for cached user requests and fact-check results; external APIs (Snopes, FactCheck.org, Twitter)
 - **Frontend**: WhatsApp bot integration
 - **Deployment**: Docker containerization, AWS Lambda for serverless
 
