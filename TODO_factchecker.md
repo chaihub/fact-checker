@@ -1,0 +1,650 @@
+# FactChecker Implementation Tasks
+
+## Overview
+This document tracks all granular tasks for implementing the FactChecker component. Tasks are organized by phase and priority. Each task includes implementation and testing requirements.
+
+---
+
+## Phase 0: Setup & Project Configuration
+
+### 0.1 Project Dependencies
+- [ ] **0.1.1** Create `requirements.txt` with core dependencies
+  - pydantic >= 2.0
+  - pytest >= 7.0
+  - pytest-asyncio >= 0.21
+  - aiohttp >= 3.8
+  - pytesseract (for OCR)
+  - (others as needed)
+- [ ] **0.1.2** Create `requirements-dev.txt` with dev dependencies
+  - ruff
+  - mypy
+  - black
+  - pytest-cov
+  - pytest-mock
+
+### 0.2 Configuration Files
+- [ ] **0.2.1** Create `pytest.ini` with test configuration
+- [ ] **0.2.2** Create `mypy.ini` for strict type checking
+- [ ] **0.2.3** Create `.env.example` for environment variables
+- [ ] **0.2.4** Create `pyproject.toml` with project metadata
+
+### 0.3 CI/CD & Testing Infrastructure
+- [ ] **0.3.1** Create GitHub Actions workflow for tests
+- [ ] **0.3.2** Setup code coverage reporting
+- [ ] **0.3.3** Setup pre-commit hooks for linting
+
+---
+
+## Phase 1: Core Models & Logging
+
+### 1.1 Models Implementation
+- [x] **1.1.1** Implement `FactCheckRequest` model with validation
+- [x] **1.1.2** Implement `ExtractedClaim` model
+- [x] **1.1.3** Implement `SearchResult` model
+- [x] **1.1.4** Implement `VerdictEnum` enum
+- [x] **1.1.5** Implement `Evidence` model
+- [x] **1.1.6** Implement `Reference` model
+- [x] **1.1.7** Implement `FactCheckResponse` model
+- [ ] **1.1.8** Add model validation tests
+  - Test all required fields
+  - Test optional fields
+  - Test enum constraints
+  - Test nested model validation
+
+### 1.2 Logging Implementation
+- [x] **1.2.1** Implement `setup_logging()` function
+- [x] **1.2.2** Implement `get_logger()` with context injection
+- [x] **1.2.3** Implement `request_id_var` context variable
+- [x] **1.2.4** Implement `@log_stage` decorator
+- [ ] **1.2.5** Write logging configuration tests
+  - Test context variable injection
+  - Test decorator timing
+  - Test log formatting
+  - Test error logging
+
+### 1.3 Interfaces Implementation
+- [x] **1.3.1** Implement `BaseExtractor` abstract class
+- [x] **1.3.2** Implement `BaseSearcher` abstract class
+- [x] **1.3.3** Implement `BaseProcessor` abstract class
+- [x] **1.3.4** Implement `IPipeline` interface
+- [ ] **1.3.5** Write interface tests
+  - Verify abstract methods exist
+  - Test that concrete implementations satisfy contracts
+
+---
+
+## Phase 2: Extractors Module
+
+### 2.1 TextExtractor Implementation
+- [x] **2.1.1** Create `TextExtractor` class extending `BaseExtractor`
+- [x] **2.1.2** Implement `extract()` method for text input
+- [x] **2.1.3** Implement input type detection logic
+- [x] **2.1.4** Implement metadata collection
+- [ ] **2.1.5** Unit test TextExtractor
+  - [x] Test basic text extraction
+  - [x] Test input validation (no claim_text + no image_data fails)
+  - [x] Test hybrid extraction (both inputs)
+  - [x] Test image-only extraction
+  - [x] Test metadata population
+  - [ ] Test edge cases (empty strings, very long text)
+  - [ ] Test special characters and encoding
+
+### 2.2 ImageExtractor Implementation
+- [x] **2.2.1** Create `ImageExtractor` class extending `BaseExtractor`
+- [x] **2.2.2** Implement `extract()` method for image input
+- [x] **2.2.3** Implement input type detection logic
+- [x] **2.2.4** Add placeholder for OCR logic
+- [ ] **2.2.5** Unit test ImageExtractor
+  - [x] Test basic image extraction
+  - [x] Test input validation
+  - [x] Test hybrid extraction
+  - [x] Test metadata capture
+  - [ ] Test OCR placeholder (will be fleshed out later)
+  - [ ] Test image format handling
+  - [ ] Test binary data validation
+
+### 2.3 OCR Integration (v0.1+)
+- [ ] **2.3.1** Research OCR options (pytesseract vs others)
+- [ ] **2.3.2** Implement OCR in `ImageExtractor.extract()`
+- [ ] **2.3.3** Add OCR confidence scoring
+- [ ] **2.3.4** Test OCR with sample images
+- [ ] **2.3.5** Benchmark OCR performance
+
+### 2.4 Advanced Text Extraction (v0.1+)
+- [ ] **2.4.1** Implement NLP-based claim segmentation (spaCy)
+- [ ] **2.4.2** Extract key entities and claims
+- [ ] **2.4.3** Implement confidence scoring for extractions
+- [ ] **2.4.4** Test with various claim formats
+
+---
+
+## Phase 3: Searchers Module
+
+### 3.1 TwitterSearcher Implementation
+- [x] **3.1.1** Create `TwitterSearcher` class extending `BaseSearcher`
+- [x] **3.1.2** Add Twitter API client initialization
+- [x] **3.1.3** Add `platform_name` property
+- [ ] **3.1.4** Implement `search()` method
+  - [ ] Build search query from claim
+  - [ ] Handle query parameter passing
+  - [ ] Call Twitter API
+  - [ ] Parse and format results
+  - [ ] Handle pagination
+  - [ ] Handle rate limiting
+- [ ] **3.1.5** Unit test TwitterSearcher
+  - [x] Test initialization
+  - [x] Test platform_name property
+  - [x] Test search returns list
+  - [x] Test search with parameters
+  - [ ] Test API error handling
+  - [ ] Test result parsing
+  - [ ] Test pagination logic
+  - [ ] Test rate limit handling
+- [ ] **3.1.6** Add Twitter API configuration
+  - [ ] Add `.env` variables for API keys
+  - [ ] Add environment validation
+
+### 3.2 BlueSkySearcher Implementation (v0.1)
+- [x] **3.2.1** Create `BlueSkySearcher` class extending `BaseSearcher`
+- [x] **3.2.2** Add BlueSky API client placeholder
+- [x] **3.2.3** Add `platform_name` property
+- [ ] **3.2.4** Implement `search()` method
+  - [ ] Implement BlueSky authentication
+  - [ ] Build search query
+  - [ ] Call BlueSky API
+  - [ ] Parse and format results
+  - [ ] Handle BlueSky-specific fields
+- [ ] **3.2.5** Unit test BlueSkySearcher
+  - [x] Test initialization
+  - [x] Test platform_name property
+  - [x] Test search returns list
+  - [ ] Test authentication
+  - [ ] Test API error handling
+- [ ] **3.2.6** Add BlueSky API configuration
+
+### 3.3 Search Parameter Building
+- [ ] **3.3.1** Create `SearchParameterBuilder` class
+- [ ] **3.3.2** Implement verbatim text extraction strategy
+- [ ] **3.3.3** Implement semantic search strategy
+- [ ] **3.3.4** Implement iterative query expansion (v0.1)
+- [ ] **3.3.5** Unit test parameter building
+  - [ ] Test verbatim extraction
+  - [ ] Test semantic extraction
+  - [ ] Test edge cases
+
+### 3.4 Search Result Aggregation
+- [ ] **3.4.1** Create `SearchAggregator` class
+- [ ] **3.4.2** Implement concurrent searcher execution
+- [ ] **3.4.3** Implement error handling & graceful degradation
+- [ ] **3.4.4** Implement deduplication logic
+- [ ] **3.4.5** Test result aggregation
+  - [ ] Test concurrent execution
+  - [ ] Test error handling
+  - [ ] Test deduplication
+
+---
+
+## Phase 4: Processors Module
+
+### 4.1 ResultAnalyzer Implementation
+- [x] **4.1.1** Create `ResultAnalyzer` class extending `BaseProcessor`
+- [x] **4.1.2** Add placeholder for analysis logic
+- [ ] **4.1.3** Implement verdict determination logic
+  - [ ] Implement claim-vs-result comparison
+  - [ ] Implement confidence scoring
+  - [ ] Implement evidence extraction
+  - [ ] Handle edge cases (no results, conflicting results)
+- [ ] **4.1.4** Unit test ResultAnalyzer
+  - [x] Test analysis with results
+  - [x] Test analysis without results
+  - [ ] Test verdict generation
+  - [ ] Test confidence calculation
+  - [ ] Test various claim types
+- [ ] **4.1.5** Implement advanced NLP comparison
+  - [ ] Add semantic similarity scoring
+  - [ ] Add negation handling
+  - [ ] Add temporal logic
+
+### 4.2 ResponseGenerator Implementation
+- [x] **4.2.1** Create `ResponseGenerator` class extending `BaseProcessor`
+- [x] **4.2.2** Add placeholder for response generation
+- [ ] **4.2.3** Implement response formatting
+  - [ ] Generate evidence summary
+  - [ ] Extract and format references
+  - [ ] Generate human-readable explanation
+  - [ ] Format search queries used
+- [ ] **4.2.4** Unit test ResponseGenerator
+  - [x] Test response generation
+  - [x] Test response structure
+  - [ ] Test explanation generation
+  - [ ] Test evidence formatting
+  - [ ] Test reference extraction
+- [ ] **4.2.5** Implement WhatsApp-specific formatting
+  - [ ] Format for character limits
+  - [ ] Handle markdown to WhatsApp format
+
+### 4.3 Claim-Specific Processors (v0.1+)
+- [ ] **4.3.1** Create specialized processors for different claim types
+  - [ ] QuoteVerificationProcessor
+  - [ ] ImageVerificationProcessor
+  - [ ] DateClaimProcessor
+  - [ ] NamedEntityProcessor
+- [ ] **4.3.2** Implement claim type detection
+- [ ] **4.3.3** Route to appropriate processor
+- [ ] **4.3.4** Test specialized processors
+
+---
+
+## Phase 5: Storage Module
+
+### 5.1 Cache Implementation
+- [x] **5.1.1** Create `Cache` class with in-memory storage
+- [x] **5.1.2** Implement `get()` method with TTL checking
+- [x] **5.1.3** Implement `set()` method with TTL
+- [x] **5.1.4** Implement `clear()` and `size()` methods
+- [ ] **5.1.5** Unit test Cache
+  - [x] Test set and get
+  - [x] Test cache miss
+  - [x] Test cache clear
+  - [x] Test TTL expiration
+  - [ ] Test concurrent access
+  - [ ] Test large payload handling
+  - [ ] Test memory limits
+
+### 5.2 Database Implementation
+- [x] **5.2.1** Create `Database` class with SQLite interface
+- [x] **5.2.2** Add database initialization
+- [ ] **5.2.3** Implement schema creation
+  - [ ] Create `claims` table
+  - [ ] Create `fact_checks` table
+  - [ ] Create `search_results` table
+  - [ ] Add appropriate indexes
+- [ ] **5.2.4** Implement `save_response()` method
+- [ ] **5.2.5** Implement `get_response()` method
+- [ ] **5.2.6** Implement `close()` method
+- [ ] **5.2.7** Unit test Database
+  - [ ] Test save and retrieve
+  - [ ] Test schema creation
+  - [ ] Test connection handling
+  - [ ] Test query performance
+
+### 5.3 Cache Strategy
+- [ ] **5.3.1** Implement multi-level cache strategy
+  - [ ] In-memory cache for hot queries
+  - [ ] Database cache for persistent storage
+  - [ ] TTL-based expiration
+- [ ] **5.3.2** Implement cache invalidation logic
+- [ ] **5.3.3** Test cache strategies
+  - [ ] Test multi-level fallback
+  - [ ] Test invalidation
+  - [ ] Test consistency
+
+### 5.4 Data Persistence (v0.1+)
+- [ ] **5.4.1** Implement data export functionality
+- [ ] **5.4.2** Implement data import functionality
+- [ ] **5.4.3** Add data backup mechanisms
+- [ ] **5.4.4** Test persistence
+
+---
+
+## Phase 6: Pipeline Orchestration
+
+### 6.1 Pipeline Stages
+- [x] **6.1.1** Create stage base class
+- [x] **6.1.2** Create `CacheLookupStage`
+- [x] **6.1.3** Create `ClaimExtractionStage`
+- [x] **6.1.4** Create `SearchParameterBuildingStage`
+- [x] **6.1.5** Create `ExternalSearchStage`
+- [x] **6.1.6** Create `ResultProcessingStage`
+- [x] **6.1.7** Create `ResponseGenerationStage`
+- [x] **6.1.8** Create `CacheStorageStage`
+
+### 6.2 Main Pipeline
+- [x] **6.2.1** Create `FactCheckPipeline` class implementing `IPipeline`
+- [x] **6.2.2** Implement `check_claim()` orchestration method
+- [x] **6.2.3** Implement individual stage methods
+  - [x] `_check_cache()`
+  - [x] `_extract_claim()`
+  - [x] `_build_search_params()`
+  - [x] `_search_sources()`
+  - [x] `_generate_response()`
+  - [x] `_cache_response()`
+- [ ] **6.2.4** Implement request ID generation and tracing
+- [ ] **6.2.5** Implement error handling and recovery
+- [ ] **6.2.6** Implement timeout handling
+- [ ] **6.2.7** Implement partial failure graceful degradation
+
+### 6.3 Pipeline Integration
+- [ ] **6.3.1** Wire extractors into pipeline
+- [ ] **6.3.2** Wire searchers into pipeline
+- [ ] **6.3.3** Wire processors into pipeline
+- [ ] **6.3.4** Wire storage/cache into pipeline
+- [ ] **6.3.5** Test integrated pipeline components
+
+---
+
+## Phase 7: Unit Testing
+
+### 7.1 Core Models Tests
+- [ ] **7.1.1** Test `FactCheckRequest` validation
+- [ ] **7.1.2** Test `ExtractedClaim` structure
+- [ ] **7.1.3** Test `FactCheckResponse` structure
+- [ ] **7.1.4** Test enum constraints
+- [ ] **7.1.5** Test nested model validation
+
+### 7.2 Logging Tests
+- [ ] **7.2.1** Test context variable injection
+- [ ] **7.2.2** Test `@log_stage` decorator
+- [ ] **7.2.3** Test timing measurement
+- [ ] **7.2.4** Test error logging
+
+### 7.3 Extractor Module Tests
+- [x] **7.3.1** TextExtractor unit tests (5 tests created)
+  - [ ] Add edge case tests
+  - [ ] Add encoding tests
+  - [ ] Add performance tests
+- [x] **7.3.2** ImageExtractor unit tests (4 tests created)
+  - [ ] Add format handling tests
+  - [ ] Add binary data tests
+  - [ ] Add OCR tests (when implemented)
+
+### 7.4 Searcher Module Tests
+- [x] **7.4.1** TwitterSearcher unit tests (4 tests created)
+  - [ ] Add API error handling tests
+  - [ ] Add pagination tests
+  - [ ] Add rate limiting tests
+  - [ ] Add result parsing tests
+- [x] **7.4.2** BlueSkySearcher unit tests (3 tests created)
+  - [ ] Add authentication tests
+  - [ ] Add API error tests
+
+### 7.5 Processor Module Tests
+- [x] **7.5.1** ResultAnalyzer unit tests (2 tests created)
+  - [ ] Add verdict generation tests
+  - [ ] Add confidence calculation tests
+  - [ ] Add various claim type tests
+- [x] **7.5.2** ResponseGenerator unit tests (1 test created)
+  - [ ] Add explanation generation tests
+  - [ ] Add evidence formatting tests
+  - [ ] Add reference extraction tests
+
+### 7.6 Storage Module Tests
+- [x] **7.6.1** Cache unit tests (4 tests created)
+  - [ ] Add concurrent access tests
+  - [ ] Add memory limit tests
+  - [ ] Add large payload tests
+- [ ] **7.6.2** Database unit tests
+  - [ ] Add schema tests
+  - [ ] Add query tests
+  - [ ] Add connection tests
+  - [ ] Add transaction tests
+
+---
+
+## Phase 8: Component-Level Testing
+
+### 8.1 Pipeline Tests
+- [x] **8.1.1** Create test fixtures for common objects
+- [x] **8.1.2** Test pipeline initialization
+- [x] **8.1.3** Test pipeline cache hit behavior
+- [ ] **8.1.4** Test full pipeline execution
+- [ ] **8.1.5** Test error handling and recovery
+- [ ] **8.1.6** Test timeout handling
+- [ ] **8.1.7** Test partial failures
+- [ ] **8.1.8** Test concurrent requests
+
+### 8.2 Integrator Tests
+- [ ] **8.2.1** Test extractor + searcher integration
+- [ ] **8.2.2** Test searcher + processor integration
+- [ ] **8.2.3** Test all components together
+- [ ] **8.2.4** Test with mocked external APIs
+- [ ] **8.2.5** Test cache behavior with real pipeline
+
+---
+
+## Phase 9: Integration Testing
+
+### 9.1 End-to-End Tests
+- [ ] **9.1.1** Create end-to-end test suite
+- [ ] **9.1.2** Test full pipeline with all real components
+- [ ] **9.1.3** Test with various claim types
+- [ ] **9.1.4** Test error handling and recovery
+- [ ] **9.1.5** Test cache behavior
+- [ ] **9.1.6** Test concurrent requests
+- [ ] **9.1.7** Test performance expectations
+- [ ] **9.1.8** Test logging and tracing
+
+### 9.2 WhatsApp Integration Tests
+- [ ] **9.2.1** Create WhatsApp integration test suite
+- [ ] **9.2.2** Test message routing to pipeline
+- [ ] **9.2.3** Test response formatting
+- [ ] **9.2.4** Test media/image handling
+- [ ] **9.2.5** Test user session management
+- [ ] **9.2.6** Test error response formatting
+- [ ] **9.2.7** Test message chunking for long responses
+- [ ] **9.2.8** Test concurrent user requests
+
+### 9.3 Twitter API Integration Tests
+- [ ] **9.3.1** Test with real Twitter API (sandbox)
+- [ ] **9.3.2** Test search query building
+- [ ] **9.3.3** Test result parsing
+- [ ] **9.3.4** Test pagination
+- [ ] **9.3.5** Test rate limiting
+- [ ] **9.3.6** Test error responses
+
+### 9.4 BlueSky Integration Tests (v0.1)
+- [ ] **9.4.1** Test BlueSky authentication
+- [ ] **9.4.2** Test search functionality
+- [ ] **9.4.3** Test result parsing
+- [ ] **9.4.4** Test error handling
+
+---
+
+## Phase 10: Performance Testing
+
+### 10.1 Latency Tests
+- [ ] **10.1.1** Measure cache lookup time
+- [ ] **10.1.2** Measure extraction time
+- [ ] **10.1.3** Measure search query building time
+- [ ] **10.1.4** Measure API response time
+- [ ] **10.1.5** Measure processing time
+- [ ] **10.1.6** Measure end-to-end latency
+- [ ] **10.1.7** Set performance benchmarks
+
+### 10.2 Throughput Tests
+- [ ] **10.2.1** Test concurrent request handling
+- [ ] **10.2.2** Measure requests per second
+- [ ] **10.2.3** Test queue management
+- [ ] **10.2.4** Identify bottlenecks
+
+### 10.3 Resource Usage
+- [ ] **10.3.1** Profile memory usage
+- [ ] **10.3.2** Profile CPU usage
+- [ ] **10.3.3** Identify memory leaks
+- [ ] **10.3.4** Optimize resource usage
+
+### 10.4 Load Testing
+- [ ] **10.4.1** Simulate high request volume
+- [ ] **10.4.2** Test graceful degradation
+- [ ] **10.4.3** Test error rate under load
+- [ ] **10.4.4** Document performance characteristics
+
+---
+
+## Phase 11: API Layer
+
+### 11.1 FastAPI Routes
+- [ ] **11.1.1** Create FastAPI application
+- [ ] **11.1.2** Create `/check-claim` POST endpoint
+  - [ ] Parse request body
+  - [ ] Call pipeline
+  - [ ] Format response
+  - [ ] Handle errors
+- [ ] **11.1.3** Create `/health` GET endpoint
+- [ ] **11.1.4** Create `/status` GET endpoint (optional)
+- [ ] **11.1.5** Implement request validation
+- [ ] **11.1.6** Implement error responses
+- [ ] **11.1.7** Add OpenAPI documentation
+
+### 11.2 Authentication & Authorization
+- [ ] **11.2.1** Implement API key authentication
+- [ ] **11.2.2** Implement rate limiting
+- [ ] **11.2.3** Implement user tracking
+- [ ] **11.2.4** Test auth and rate limiting
+
+### 11.3 API Testing
+- [ ] **11.3.1** Test endpoint creation
+- [ ] **11.3.2** Test request/response validation
+- [ ] **11.3.3** Test error responses
+- [ ] **11.3.4** Test rate limiting
+- [ ] **11.3.5** Test concurrent requests
+- [ ] **11.3.6** Load test API
+
+---
+
+## Phase 12: Deployment & DevOps
+
+### 12.1 Containerization
+- [ ] **12.1.1** Create Dockerfile
+- [ ] **12.1.2** Create docker-compose.yml
+- [ ] **12.1.3** Test Docker build
+- [ ] **12.1.4** Create Docker registry push
+
+### 12.2 AWS Lambda (if applicable)
+- [ ] **12.2.1** Create Lambda handler
+- [ ] **12.2.2** Setup Lambda environment variables
+- [ ] **12.2.3** Test Lambda locally
+- [ ] **12.2.4** Deploy to AWS Lambda
+
+### 12.3 CI/CD Pipeline
+- [ ] **12.3.1** Setup GitHub Actions workflows
+- [ ] **12.3.2** Run linting on PR
+- [ ] **12.3.3** Run tests on PR
+- [ ] **12.3.4** Generate coverage reports
+- [ ] **12.3.5** Deploy on merge to main
+- [ ] **12.3.6** Setup rollback mechanism
+
+### 12.4 Monitoring & Logging
+- [ ] **12.4.1** Setup centralized logging (CloudWatch/ELK)
+- [ ] **12.4.2** Setup metrics collection
+- [ ] **12.4.3** Setup alerting
+- [ ] **12.4.4** Setup error tracking (Sentry)
+- [ ] **12.4.5** Create dashboards
+
+---
+
+## Phase 13: Documentation
+
+### 13.1 Code Documentation
+- [ ] **13.1.1** Add docstrings to all modules
+- [ ] **13.1.2** Add type hint documentation
+- [ ] **13.1.3** Add inline comments for complex logic
+- [ ] **13.1.4** Generate API documentation
+
+### 13.2 User Documentation
+- [ ] **13.2.1** Write setup guide
+- [ ] **13.2.2** Write usage guide
+- [ ] **13.2.3** Write configuration guide
+- [ ] **13.2.4** Write troubleshooting guide
+- [ ] **13.2.5** Create API documentation
+- [ ] **13.2.6** Create architecture diagrams
+
+### 13.3 Developer Documentation
+- [ ] **13.3.1** Write development setup guide
+- [ ] **13.3.2** Write testing guide
+- [ ] **13.3.3** Write contribution guidelines
+- [ ] **13.3.4** Create module documentation
+- [ ] **13.3.5** Document design decisions
+
+---
+
+## Phase 14: Version 0.1 Features
+
+### 14.1 BlueSky Support
+- [ ] **14.1.1** Complete BlueSkySearcher implementation
+- [ ] **14.1.2** Test BlueSky integration
+- [ ] **14.1.3** Add configuration for BlueSky
+
+### 14.2 Iterative Query Expansion
+- [ ] **14.2.1** Implement iterative search strategy
+- [ ] **14.2.2** Implement cost-aware query building
+- [ ] **14.2.3** Test query expansion logic
+- [ ] **14.2.4** Benchmark cost savings
+
+### 14.3 Advanced Claim Analysis
+- [ ] **14.3.1** Implement semantic similarity scoring
+- [ ] **14.3.2** Implement negation handling
+- [ ] **14.3.3** Implement temporal logic
+- [ ] **14.3.4** Add specialized processors for claim types
+
+### 14.4 OCR Improvements
+- [ ] **14.4.1** Implement OCR preprocessing
+- [ ] **14.4.2** Add OCR confidence scoring
+- [ ] **14.4.3** Test with various image types
+- [ ] **14.4.4** Benchmark OCR performance
+
+---
+
+## Priority Legend
+
+- **High Priority** (Phase 0-6): Core functionality, required for MVP
+- **Medium Priority** (Phase 7-9): Testing and quality assurance
+- **Low Priority** (Phase 10-14): Optimization, advanced features, v0.1+ roadmap
+
+---
+
+## Testing Coverage Goals
+
+| Module | Target Coverage | Current |
+|--------|-----------------|---------|
+| `core/models.py` | 95% | 0% |
+| `core/interfaces.py` | 90% | 0% |
+| `logging_config.py` | 90% | 0% |
+| `extractors/text_extractor.py` | 95% | 0% |
+| `extractors/image_extractor.py` | 95% | 0% |
+| `searchers/twitter_searcher.py` | 85% | 0% |
+| `searchers/bluesky_searcher.py` | 85% | 0% |
+| `processors/result_analyzer.py` | 90% | 0% |
+| `processors/response_generator.py` | 90% | 0% |
+| `storage/cache.py` | 95% | 0% |
+| `storage/database.py` | 90% | 0% |
+| `pipeline/factcheck_pipeline.py` | 85% | 0% |
+| **Overall** | **90%** | **0%** |
+
+---
+
+## Quick Reference: Run Commands
+
+```bash
+# Setup
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+
+# Run tests
+pytest tests/ -v
+pytest src/factchecker/ -v  # Module tests only
+pytest src/factchecker/extractors/tests/ -v  # Specific module
+
+# Coverage
+pytest --cov=src/factchecker --cov-report=html
+
+# Lint
+ruff check .
+mypy --strict src/
+
+# Format
+ruff format .
+
+# Test specific function
+pytest src/factchecker/extractors/tests/test_text_extractor.py::test_text_extraction_basic -v
+```
+
+---
+
+## Notes
+
+- Use `@pytest.mark.asyncio` for async tests
+- Use `AsyncMock` for mocking async functions
+- All tests should be independent and idempotent
+- Update this file as tasks are completed
+- Update coverage table after each testing phase
