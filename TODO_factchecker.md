@@ -8,25 +8,26 @@ This document tracks all granular tasks for implementing the FactChecker compone
 ## Phase 0: Setup & Project Configuration
 
 ### 0.1 Project Dependencies
-- [ ] **0.1.1** Create `requirements.txt` with core dependencies
+- [x] **0.1.1** Create `requirements.txt` with core dependencies
   - pydantic >= 2.0
   - pytest >= 7.0
   - pytest-asyncio >= 0.21
   - aiohttp >= 3.8
   - pytesseract (for OCR)
-  - (others as needed)
-- [ ] **0.1.2** Create `requirements-dev.txt` with dev dependencies
-  - ruff
-  - mypy
-  - black
-  - pytest-cov
-  - pytest-mock
+  - fastapi, uvicorn, tweepy, sqlalchemy, pillow, and others
+- [x] **0.1.2** Create `requirements-dev.txt` with dev dependencies
+  - ruff, mypy, black, pytest-cov, pytest-mock
+  - Additional: pytest-xdist, sphinx, ipdb, responses, freezegun
 
 ### 0.2 Configuration Files
-- [ ] **0.2.1** Create `pytest.ini` with test configuration
-- [ ] **0.2.2** Create `mypy.ini` for strict type checking
-- [ ] **0.2.3** Create `.env.example` for environment variables
-- [ ] **0.2.4** Create `pyproject.toml` with project metadata
+- [x] **0.2.1** Create `pytest.ini` with test configuration
+  - Test discovery patterns, asyncio mode, markers, logging, coverage
+- [x] **0.2.2** Create `mypy.ini` for strict type checking
+  - Python 3.10+, strict mode, per-module overrides
+- [x] **0.2.3** Create `.env.example` for environment variables
+  - Twitter, BlueSky, WhatsApp, database, cache, API config
+- [x] **0.2.4** Create `pyproject.toml` with project metadata
+  - Build system, project metadata, tool configs (ruff, mypy, black, coverage)
 
 ### 0.3 CI/CD & Testing Infrastructure
 - [ ] **0.3.1** Create GitHub Actions workflow for tests
