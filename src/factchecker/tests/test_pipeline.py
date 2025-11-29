@@ -71,12 +71,11 @@ async def test_pipeline_cache_hit(pipeline, mock_cache, sample_request, sample_r
 @pytest.mark.asyncio
 async def test_pipeline_requires_input_validation(pipeline, sample_request):
     """Test that pipeline validates input."""
-    invalid_request = FactCheckRequest(
-        claim_text=None, image_data=None, user_id="test"
-    )
-
-    with pytest.raises(ValueError):
-        await pipeline.check_claim(invalid_request)
+    # Validation should fail at model creation time
+    with pytest.raises(ValueError, match="At least one of claim_text or image_data"):
+        FactCheckRequest(
+            claim_text=None, image_data=None, user_id="test"
+        )
 
 
 # TODO: Add more comprehensive pipeline tests as implementation progresses

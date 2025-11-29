@@ -3,7 +3,7 @@
 from typing import Optional, List, Literal
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, model_validator
 
 
 class FactCheckRequest(BaseModel):
@@ -18,15 +18,14 @@ class FactCheckRequest(BaseModel):
     source_platform: str = "whatsapp"
     request_id: Optional[str] = None
 
-    @field_validator("claim_text", "image_data", mode="before")
-    @classmethod
-    def at_least_one_required(cls, v, info):
+    @model_validator(mode="after")
+    def at_least_one_required(self):
         """Validate that at least one input is provided."""
-        if not info.data.get("claim_text") and not info.data.get("image_data"):
+        if not self.claim_text and not self.image_data:
             raise ValueError(
                 "At least one of claim_text or image_data must be provided"
             )
-        return v
+        return self
 
     class Config:
         str_strip_whitespace = True
