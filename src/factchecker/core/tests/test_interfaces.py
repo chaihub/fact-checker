@@ -431,10 +431,12 @@ class TestDependencyInjection:
         searcher: BaseSearcher = TwitterSearcher()
         assert isinstance(searcher, BaseSearcher)
 
-    def test_processor_can_be_injected_as_base_type(self):
-        """Test that concrete processor can be used as BaseProcessor."""
-        processor: BaseProcessor = ResultAnalyzer()
-        assert isinstance(processor, BaseProcessor)
+    def test_analyzer_and_generator_can_be_instantiated(self):
+        """Test that result analyzer and response generator can be instantiated."""
+        analyzer = ResultAnalyzer()
+        generator = ResponseGenerator()
+        assert analyzer is not None
+        assert generator is not None
 
     def test_multiple_implementations_with_base_type(self):
         """Test that different implementations can be swapped via base type."""

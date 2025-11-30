@@ -54,6 +54,7 @@ Repository = "https://github.com/chaihub/fact-checker.git"
 "Bug Tracker" = "https://github.com/chaihub/fact-checker/issues"
 
 [tool.setuptools]
+package-dir = {"" = "src"}
 packages = ["factchecker"]
 
 [tool.setuptools.package-data]
