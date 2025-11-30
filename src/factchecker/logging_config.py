@@ -13,6 +13,28 @@ request_id_var: contextvars.ContextVar = contextvars.ContextVar(
 )
 
 
+class RequestIdFilter(logging.Filter):
+    """Filter to inject request_id context variable into log records."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Add request_id to the log record."""
+        record.request_id = request_id_var.get()
+        return True
+
+
+class RequestIdLoggerAdapter(logging.LoggerAdapter):
+    """LoggerAdapter that injects request_id from context variable."""
+
+    def process(self, msg, kwargs):
+        """Process message to include request_id in the message itself."""
+        request_id = request_id_var.get()
+        # Add request_id to the LogRecord via extra dict
+        if "extra" not in kwargs:
+            kwargs["extra"] = {}
+        kwargs["extra"]["request_id"] = request_id
+        return msg, kwargs
+
+
 def setup_logging(level=logging.INFO) -> logging.Logger:
     """Initialize logging with structured format."""
     handler = logging.StreamHandler()
@@ -20,6 +42,10 @@ def setup_logging(level=logging.INFO) -> logging.Logger:
         "%(asctime)s | %(name)s | %(levelname)s | %(request_id)s | %(message)s"
     )
     handler.setFormatter(formatter)
+
+    # Add filter to inject request_id as fallback
+    request_id_filter = RequestIdFilter()
+    handler.addFilter(request_id_filter)
 
     logger = logging.getLogger("factchecker")
     logger.setLevel(level)
@@ -30,7 +56,13 @@ def setup_logging(level=logging.INFO) -> logging.Logger:
 def get_logger(name: str) -> logging.LoggerAdapter:
     """Get logger with automatic request_id injection."""
     logger = logging.getLogger(f"factchecker.{name}")
-    return logging.LoggerAdapter(logger, {"request_id": lambda: request_id_var.get()})
+    
+    # Ensure the logger has the request_id filter
+    if not any(isinstance(f, RequestIdFilter) for f in logger.filters):
+        logger.addFilter(RequestIdFilter())
+    
+    # Return a custom LoggerAdapter that injects request_id into extra dict
+    return RequestIdLoggerAdapter(logger, {})
 
 
 def log_stage(stage_name: str):
@@ -47,15 +79,13 @@ def log_stage(stage_name: str):
                 result = await func(*args, **kwargs)
                 elapsed_ms = (datetime.now() - start_time).total_seconds() * 1000
                 logger.info(
-                    f"Stage '{stage_name}' completed",
-                    extra={"elapsed_ms": f"{elapsed_ms:.2f}ms"},
+                    f"Stage '{stage_name}' completed (elapsed: {elapsed_ms:.2f}ms)"
                 )
                 return result
             except Exception as e:
                 elapsed_ms = (datetime.now() - start_time).total_seconds() * 1000
                 logger.error(
-                    f"Stage '{stage_name}' failed: {str(e)}",
-                    extra={"elapsed_ms": f"{elapsed_ms:.2f}ms"},
+                    f"Stage '{stage_name}' failed: {str(e)} (elapsed: {elapsed_ms:.2f}ms)",
                     exc_info=True,
                 )
                 raise
@@ -68,15 +98,13 @@ def log_stage(stage_name: str):
                 result = func(*args, **kwargs)
                 elapsed_ms = (datetime.now() - start_time).total_seconds() * 1000
                 logger.info(
-                    f"Stage '{stage_name}' completed",
-                    extra={"elapsed_ms": f"{elapsed_ms:.2f}ms"},
+                    f"Stage '{stage_name}' completed (elapsed: {elapsed_ms:.2f}ms)"
                 )
                 return result
             except Exception as e:
                 elapsed_ms = (datetime.now() - start_time).total_seconds() * 1000
                 logger.error(
-                    f"Stage '{stage_name}' failed: {str(e)}",
-                    extra={"elapsed_ms": f"{elapsed_ms:.2f}ms"},
+                    f"Stage '{stage_name}' failed: {str(e)} (elapsed: {elapsed_ms:.2f}ms)",
                     exc_info=True,
                 )
                 raise

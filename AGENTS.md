@@ -2,12 +2,59 @@
 
 ## Build/Test/Lint Commands
 
+### Standard Commands (use in terminal/CI)
 - **Setup venv**: `python -m venv venv && source venv/bin/activate` (Windows: `venv\Scripts\activate`)
 - **Install dependencies**: `pip install -r requirements.txt`
 - **Run tests**: `pytest tests/ -v`
 - **Run single test**: `pytest tests/test_file.py::test_function -v`
 - **Lint code**: `ruff check . && mypy --strict .`
 - **Format code**: `ruff format .`
+
+### Python Wrapper Scripts (for Amp on WSL or when bash unavailable)
+
+Use these scripts as bash command replacements. All support `-h` for detailed help.
+
+#### Master Script
+- **`python dev.py test`** - Run all tests
+- **`python dev.py test --logging`** - Run logging tests only
+- **`python dev.py lint`** - Run linting (ruff + mypy)
+- **`python dev.py format`** - Format code
+- **`python dev.py validate`** - Full validation suite
+- **`python dev.py list-tests`** - List all tests
+- **`python dev.py check-syntax`** - Check Python syntax
+- **`python dev.py help [command]`** - Get command help
+
+#### Individual Scripts
+- **`python test_runner.py`** - Flexible pytest runner
+  - `python test_runner.py -v --cov` - Verbose with coverage
+  - `python test_runner.py -k test_setup_logging` - Run specific test
+  - `python test_runner.py src/factchecker/tests/test_logging_config.py -v`
+
+- **`python run_logging_tests.py`** - Run logging configuration tests
+  - `python run_logging_tests.py -v` - Verbose output
+  - `python run_logging_tests.py --cov` - With coverage report
+  - `python run_logging_tests.py -k request_id` - Filter by keyword
+
+- **`python list_all_tests.py`** - Discover and list tests
+  - `python list_all_tests.py --detailed` - Full test info
+  - `python list_all_tests.py --filter logging` - Filter by pattern
+
+- **`python check_syntax.py`** - Validate Python syntax
+  - `python check_syntax.py --fix` - Show detailed errors
+  - `python check_syntax.py src/` - Check specific directory
+
+- **`python validate_tests.py`** - Comprehensive validation
+  - `python validate_tests.py --quick` - Skip coverage
+  - `python validate_tests.py --syntax` - Syntax check only
+
+- **`python lint_check.py`** - Code quality checks
+  - `python lint_check.py --ruff` - Ruff linting only
+  - `python lint_check.py --mypy` - Type checking only
+  - `python lint_check.py --fix` - Attempt to fix issues
+
+- **`python format_code.py`** - Format code
+  - `python format_code.py --check` - Check without modifying
+  - `python format_code.py src/` - Format specific directory
 
 ## Architecture & Structure
 
