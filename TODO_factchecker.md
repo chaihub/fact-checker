@@ -342,23 +342,58 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [x] **6.2.1** Create `FactCheckPipeline` class implementing `IPipeline`
 - [x] **6.2.2** Implement `check_claim()` orchestration method
 - [x] **6.2.3** Implement individual stage methods
-  - [x] `_check_cache()`
-  - [x] `_extract_claim()`
-  - [x] `_build_search_params()`
-  - [x] `_search_sources()`
-  - [x] `_generate_response()`
-  - [x] `_cache_response()`
+  - [x] `_check_cache()` - Returns Optional[FactCheckResponse]
+  - [x] `_extract_claim()` - Returns ExtractedClaim
+  - [x] `_build_search_params()` - Returns dict with search parameters
+  - [x] `_search_sources()` - Returns List[SearchResult] with 3 mock results
+  - [x] `_generate_response()` - Returns properly typed FactCheckResponse
+  - [x] `_cache_response()` - Stores response with type safety
+- [x] **6.2.4a** Create mock implementations for all pipeline stages ✅ COMPLETE
+  - [x] Mock `ClaimExtractionStage` via extractor call
+  - [x] Mock `SearchParameterBuildingStage` with dummy search parameters
+  - [x] Mock `ExternalSearchStage` with hardcoded search results (3 results)
+  - [x] Mock response generation with template responses
+  - [x] Cache lookup and storage with pass-through logic
+  - [x] All methods have complete type hints
+  - [x] Request ID propagation through all stages
+  - [x] Comprehensive test suite (6 new tests)
+- [ ] **6.2.4b** End-to-end skeleton test
+  - [ ] Test full pipeline execution flow with all mocked stages
+  - [ ] Verify data flows correctly through all stages
+  - [ ] Test with sample `FactCheckRequest` inputs
+  - [ ] Verify output matches expected `FactCheckResponse` structure
+  - [ ] Test request ID propagation through all stages
+- [ ] **6.2.4c** Stage integration and composition test
+  - [ ] Test chaining of mocked stages together
+  - [ ] Test error propagation through pipeline
+  - [ ] Test logging/tracing at each stage
+  - [ ] Verify stage output becomes next stage input
+- [ ] **6.2.4d** Pipeline configuration validation
+  - [ ] Verify all required components are wired correctly
+  - [ ] Test dependency injection of mocks
+  - [ ] Validate configuration before execution
+  - [ ] Test component initialization order
 - [ ] **6.2.4** Implement request ID generation and tracing
-- [ ] **6.2.5** Implement error handling and recovery
-- [ ] **6.2.6** Implement timeout handling
-- [ ] **6.2.7** Implement partial failure graceful degradation
+  - [ ] Generate unique request IDs for each claim check
+  - [ ] Trace request ID through all mocked stages
+  - [ ] Include request ID in all stage logging
+- [ ] **6.2.5** Implement basic error handling for skeleton
+  - [ ] Test exception propagation through mocked stages
+  - [ ] Test basic error recovery at stage level (skeleton scope only)
+  - [ ] Defer sophisticated recovery logic to Phase 8
 
 ### 6.3 Pipeline Integration
+*Note: Move these higher priority after skeleton is working. These test real component integration with the mocked pipeline framework.*
 - [ ] **6.3.1** Wire extractors into pipeline
 - [ ] **6.3.2** Wire searchers into pipeline
 - [ ] **6.3.3** Wire processors into pipeline
 - [ ] **6.3.4** Wire storage/cache into pipeline
 - [ ] **6.3.5** Test integrated pipeline components
+  - [ ] Test real TextExtractor + ImageExtractor with pipeline
+  - [ ] Test real TwitterSearcher + BlueSkySearcher with pipeline
+  - [ ] Test real ResultAnalyzer + ResponseGenerator with pipeline
+  - [ ] Test Cache and Database integration
+  - [ ] Verify component outputs match expected interface contracts
 
 ---
 
@@ -428,8 +463,14 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [x] **8.1.3** Test pipeline cache hit behavior
 - [ ] **8.1.4** Test full pipeline execution
 - [ ] **8.1.5** Test error handling and recovery
-- [ ] **8.1.6** Test timeout handling
-- [ ] **8.1.7** Test partial failures
+- [ ] **8.1.6** Implement timeout handling
+  - [ ] Test timeout at each pipeline stage
+  - [ ] Test timeout recovery mechanisms
+  - [ ] Test timeout configuration and validation
+- [ ] **8.1.7** Implement partial failure graceful degradation
+  - [ ] Test graceful handling of stage failures
+  - [ ] Test fallback mechanisms
+  - [ ] Test partial result return when stages fail
 - [ ] **8.1.8** Test concurrent requests
 
 ### 8.2 Integrator Tests
