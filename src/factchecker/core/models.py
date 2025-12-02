@@ -60,6 +60,19 @@ class VerdictEnum(str, Enum):
     NOT_AUTHENTIC = "not_authentic"
     MIXED = "mixed"
     UNCLEAR = "unclear"
+    ERROR = "error"
+
+
+class ErrorDetails(BaseModel):
+    """Detailed error information for debugging and monitoring."""
+
+    failed_stage: str
+    failed_function: str
+    error_type: str
+    error_message: str
+    input_parameters: dict
+    traceback_summary: str
+    timestamp: datetime
 
 
 class Reference(BaseModel):
@@ -87,10 +100,11 @@ class FactCheckResponse(BaseModel):
     claim_id: str
     verdict: VerdictEnum
     confidence: float
-    evidence: List[Evidence]
-    references: List[Reference]
+    evidence: Optional[List[Evidence]] = None
+    references: Optional[List[Reference]] = None
     explanation: str
-    search_queries_used: List[str]
+    search_queries_used: Optional[List[str]] = None
     cached: bool
     processing_time_ms: float
     timestamp: datetime
+    error_details: Optional["ErrorDetails"] = None

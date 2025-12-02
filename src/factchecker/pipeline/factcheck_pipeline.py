@@ -2,6 +2,7 @@
 
 import asyncio
 import uuid
+import traceback
 from datetime import datetime
 from typing import Optional, List
 
@@ -13,11 +14,36 @@ from factchecker.core.models import (
     Evidence,
     Reference,
     VerdictEnum,
+    ErrorDetails,
 )
 from factchecker.core.interfaces import IPipeline
-from factchecker.logging_config import get_logger, log_stage, request_id_var
+from factchecker.logging_config import (
+    get_logger,
+    log_stage,
+    request_id_var,
+    error_context_var,
+)
 
 logger = get_logger(__name__)
+
+
+class PipelineExecutionError(Exception):
+    """Exception with pipeline execution context."""
+
+    def __init__(
+        self,
+        message: str,
+        stage_name: str,
+        function_name: str,
+        input_params: dict,
+        original_exception: Exception,
+    ):
+        self.message = message
+        self.stage_name = stage_name
+        self.function_name = function_name
+        self.input_params = input_params
+        self.original_exception = original_exception
+        super().__init__(message)
 
 
 class FactCheckPipeline(IPipeline):
@@ -73,9 +99,24 @@ class FactCheckPipeline(IPipeline):
             logger.info("Fact-check request completed successfully")
             return response
 
+        except PipelineExecutionError as e:
+            logger.error(
+                f"Pipeline failed at stage '{e.stage_name}': {str(e)}", exc_info=True
+            )
+            error_response = await self._generate_error_response(
+                request, e, start_time
+            )
+            logger.info("Fact-check request completed with error response")
+            return error_response
         except Exception as e:
-            logger.error(f"Pipeline failed: {str(e)}", exc_info=True)
-            raise
+            logger.error(
+                f"Pipeline encountered unexpected error: {str(e)}", exc_info=True
+            )
+            error_response = await self._generate_error_response(
+                request, e, start_time
+            )
+            logger.info("Fact-check request completed with error response")
+            return error_response
 
     @log_stage("Cache Lookup")
     async def _check_cache(self, request: FactCheckRequest) -> Optional[FactCheckResponse]:
@@ -195,3 +236,67 @@ class FactCheckPipeline(IPipeline):
         # For now, use request_id as fallback to prevent errors
         cache_key = response.request_id
         await self.cache.set(cache_key, response)
+
+    async def _generate_error_response(
+        self,
+        request: FactCheckRequest,
+        exception: Exception,
+        start_time: datetime,
+    ) -> FactCheckResponse:
+        """Generate error response with detailed debugging information."""
+        processing_time_ms = (datetime.now() - start_time).total_seconds() * 1000
+
+        # Extract error context
+        if isinstance(exception, PipelineExecutionError):
+            failed_stage = exception.stage_name
+            failed_function = exception.function_name
+            error_type = type(exception.original_exception).__name__
+            error_message = str(exception.original_exception)
+            input_parameters = exception.input_params
+            traceback_summary = self._extract_traceback_summary(
+                exception.original_exception
+            )
+        else:
+            # Fallback for unexpected exceptions
+            failed_stage = "Unknown"
+            failed_function = "Unknown"
+            error_type = type(exception).__name__
+            error_message = str(exception)
+            input_parameters = {}
+            traceback_summary = self._extract_traceback_summary(exception)
+
+        # Create ErrorDetails object
+        error_details = ErrorDetails(
+            failed_stage=failed_stage,
+            failed_function=failed_function,
+            error_type=error_type,
+            error_message=error_message,
+            input_parameters=input_parameters,
+            traceback_summary=traceback_summary,
+            timestamp=datetime.now(),
+        )
+
+        # Create error response
+        response = FactCheckResponse(
+            request_id=request.request_id or str(uuid.uuid4()),
+            claim_id=str(uuid.uuid4()),
+            verdict=VerdictEnum.ERROR,
+            confidence=0.0,
+            evidence=None,
+            references=None,
+            explanation=f"Fact-check failed at stage: {error_details.failed_stage}. {error_details.error_message}",
+            search_queries_used=None,
+            cached=False,
+            processing_time_ms=processing_time_ms,
+            timestamp=datetime.now(),
+            error_details=error_details,
+        )
+        return response
+
+    def _extract_traceback_summary(self, exception: Exception) -> str:
+        """Extract condensed traceback showing call chain."""
+        tb_lines = traceback.format_exception(
+            type(exception), exception, exception.__traceback__
+        )
+        # Return last 5 lines (most relevant)
+        return "".join(tb_lines[-5:])

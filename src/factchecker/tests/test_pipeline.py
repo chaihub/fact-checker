@@ -270,22 +270,34 @@ class TestPipeline64b:
     async def test_full_pipeline_with_various_claim_types(
         self, pipeline, mock_cache, mock_extractors
     ):
-        """Test 6.2.4b: Test with various claim types."""
+        """Test 6.2.4b: Test with various claim types (text, image, mixed)."""
         mock_cache.get.return_value = None
 
+        # Test cases: (claim_text, image_data, raw_input_type, extracted_from)
         claim_types = [
-            ("The Earth is round", "text_only", "text"),
-            ("COVID vaccines contain microchips", "text_only", "text"),
-            ("Climate change is real", "text_only", "text"),
+            # Text-only claim
+            ("The Earth is round", None, "text_only", "text"),
+            # Image-only claim
+            (None, b"fake_image_data_1", "image_only", "image"),
+            # Mixed: both text and image
+            ("COVID vaccines contain microchips", b"fake_image_data_2", "both", "hybrid"),
+            # Another text-only claim
+            ("Climate change is real", None, "text_only", "text"),
         ]
 
-        for claim_text, input_type, extracted_from in claim_types:
-            request = FactCheckRequest(claim_text=claim_text, user_id="test_user")
+        for claim_text, image_data, raw_input_type, extracted_from in claim_types:
+            request = FactCheckRequest(
+                claim_text=claim_text, image_data=image_data, user_id="test_user"
+            )
+            
+            # Extract claim text for the ExtractedClaim object
+            extracted_text = claim_text or f"Extracted from {raw_input_type}"
+            
             extracted = ExtractedClaim(
-                claim_text=claim_text,
+                claim_text=extracted_text,
                 extracted_from=extracted_from,
                 confidence=0.95,
-                raw_input_type=input_type,
+                raw_input_type=raw_input_type,
                 metadata={},
             )
             mock_extractors.extract.return_value = extracted
@@ -294,6 +306,7 @@ class TestPipeline64b:
 
             assert response is not None
             assert response.verdict is not None
+            assert isinstance(response.verdict, VerdictEnum)
 
     @pytest.mark.asyncio
     async def test_full_pipeline_response_structure_validation(
@@ -361,13 +374,30 @@ class TestPipeline64c:
     async def test_error_propagation_through_pipeline(
         self, pipeline, mock_cache, mock_extractors, sample_request
     ):
-        """Test 6.2.4c: Test error propagation through pipeline."""
+        """Test 6.2.4c: Test error handling with detailed context."""
         mock_cache.get.side_effect = Exception("Cache error")
         mock_extractors.extract.return_value = None
 
-        # Error in cache should be caught by try-except in check_claim
-        with pytest.raises(Exception):
-            await pipeline.check_claim(sample_request)
+        # Error in cache should be caught and returned as error response
+        response = await pipeline.check_claim(sample_request)
+
+        # Verify error response structure
+        assert isinstance(response, FactCheckResponse)
+        assert response.verdict == VerdictEnum.ERROR
+        assert response.confidence == 0.0
+        assert response.request_id is not None
+
+        # Verify error details are captured
+        assert response.error_details is not None
+        assert response.error_details.failed_stage == "Cache Lookup"
+        assert "_check_cache" in response.error_details.failed_function
+        assert response.error_details.error_type == "Exception"
+        assert "Cache error" in response.error_details.error_message
+        assert response.error_details.input_parameters is not None
+        assert response.error_details.traceback_summary is not None
+
+        # Verify explanation mentions stage
+        assert "Cache Lookup" in response.explanation
 
     @pytest.mark.asyncio
     async def test_logging_at_each_stage(
@@ -432,10 +462,88 @@ class TestPipeline64c:
         assert response.cached is True
         assert mock_extractors.extract.call_count == 0
 
+    @pytest.mark.asyncio
+    async def test_error_details_capture_cache_error(
+        self, pipeline, mock_cache, sample_request
+    ):
+        """Test that cache errors capture detailed error context."""
+        mock_cache.get.side_effect = Exception("Connection timeout")
 
-# ============================================================================
-# Task 6.2.4d: Pipeline Configuration Validation
-# ============================================================================
+        response = await pipeline.check_claim(sample_request)
+
+        assert response.verdict == VerdictEnum.ERROR
+        assert response.error_details is not None
+        assert response.error_details.failed_stage == "Cache Lookup"
+        assert response.error_details.error_type == "Exception"
+        assert response.error_details.error_message == "Connection timeout"
+        assert response.error_details.input_parameters is not None
+        assert response.error_details.traceback_summary is not None
+
+    @pytest.mark.asyncio
+    async def test_error_details_capture_extraction_error(
+        self, pipeline, mock_cache, mock_extractors, sample_request
+    ):
+        """Test that extraction errors capture detailed error context."""
+        mock_cache.get.return_value = None
+        mock_extractors.extract.side_effect = ValueError("Invalid claim format")
+
+        response = await pipeline.check_claim(sample_request)
+
+        assert response.verdict == VerdictEnum.ERROR
+        assert response.error_details is not None
+        assert response.error_details.failed_stage == "Claim Extraction"
+        assert "_extract_claim" in response.error_details.failed_function
+        assert response.error_details.error_type == "ValueError"
+        assert "Invalid claim format" in response.error_details.error_message
+
+    @pytest.mark.asyncio
+    async def test_error_response_includes_debugging_info(
+        self, pipeline, mock_cache, sample_request
+    ):
+        """Test that error responses include all debugging information."""
+        mock_cache.get.side_effect = RuntimeError("Unexpected cache failure")
+
+        response = await pipeline.check_claim(sample_request)
+
+        assert response.verdict == VerdictEnum.ERROR
+        error_details = response.error_details
+
+        # Verify all debugging fields are present
+        assert error_details.failed_stage is not None
+        assert error_details.failed_function is not None
+        assert error_details.error_type is not None
+        assert error_details.error_message is not None
+        assert error_details.input_parameters is not None
+        assert error_details.traceback_summary is not None
+        assert error_details.timestamp is not None
+
+        # Verify types
+        assert isinstance(error_details.failed_stage, str)
+        assert isinstance(error_details.failed_function, str)
+        assert isinstance(error_details.input_parameters, dict)
+
+    @pytest.mark.asyncio
+    async def test_error_parameters_sanitization(
+        self, pipeline, mock_cache, sample_request
+    ):
+        """Test that sensitive data is sanitized in error parameters."""
+        mock_cache.get.side_effect = Exception("Test error")
+
+        response = await pipeline.check_claim(sample_request)
+
+        # Check that image_data is not exposed in full
+        error_params = response.error_details.input_parameters
+        for key, value in error_params.items():
+            assert not isinstance(
+                value, bytes
+            ), "Raw bytes should not be in error params"
+            if "image_data" in key.lower():
+                assert "<bytes:" in str(value), "Image data should be sanitized"
+
+
+    # ============================================================================
+    # Task 6.2.4d: Pipeline Configuration Validation
+    # ============================================================================
 
 class TestPipeline64d:
     """Test 6.2.4d: Pipeline configuration validation."""

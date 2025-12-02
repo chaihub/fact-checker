@@ -280,6 +280,7 @@ class TestErrorLogging:
     @pytest.mark.asyncio
     async def test_async_decorator_logs_exception(self, caplog):
         """Test decorator logs exceptions in async functions."""
+        from factchecker.pipeline.factcheck_pipeline import PipelineExecutionError
         request_id_var.set("error-test-1")
 
         @log_stage("Error Stage Async")
@@ -287,7 +288,7 @@ class TestErrorLogging:
             raise ValueError("Test error message")
 
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(ValueError):
+            with pytest.raises(PipelineExecutionError):
                 await failing_async_task()
 
         assert "Stage 'Error Stage Async' failed" in caplog.text
@@ -295,6 +296,7 @@ class TestErrorLogging:
 
     def test_sync_decorator_logs_exception(self, caplog):
         """Test decorator logs exceptions in sync functions."""
+        from factchecker.pipeline.factcheck_pipeline import PipelineExecutionError
         request_id_var.set("error-test-2")
 
         @log_stage("Error Stage Sync")
@@ -302,7 +304,7 @@ class TestErrorLogging:
             raise RuntimeError("Sync error message")
 
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(RuntimeError):
+            with pytest.raises(PipelineExecutionError):
                 failing_sync_task()
 
         assert "Stage 'Error Stage Sync' failed" in caplog.text
@@ -311,6 +313,7 @@ class TestErrorLogging:
     @pytest.mark.asyncio
     async def test_async_decorator_exception_includes_stack_trace(self, caplog):
         """Test that async decorator logs include stack trace."""
+        from factchecker.pipeline.factcheck_pipeline import PipelineExecutionError
         request_id_var.set("error-test-3")
 
         @log_stage("Stack Trace Async")
@@ -320,7 +323,7 @@ class TestErrorLogging:
             inner_function()
 
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(TypeError):
+            with pytest.raises(PipelineExecutionError):
                 await task_with_traceback()
 
         # Check for stack trace indicators
@@ -328,6 +331,7 @@ class TestErrorLogging:
 
     def test_sync_decorator_exception_includes_stack_trace(self, caplog):
         """Test that sync decorator logs include stack trace."""
+        from factchecker.pipeline.factcheck_pipeline import PipelineExecutionError
         request_id_var.set("error-test-4")
 
         @log_stage("Stack Trace Sync")
@@ -337,7 +341,7 @@ class TestErrorLogging:
             inner_function()
 
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(KeyError):
+            with pytest.raises(PipelineExecutionError):
                 task_with_traceback()
 
         assert "Traceback" in caplog.text or "KeyError" in caplog.text
@@ -345,6 +349,7 @@ class TestErrorLogging:
     @pytest.mark.asyncio
     async def test_async_decorator_logs_error_before_raising(self, caplog):
         """Test that decorator logs error before re-raising exception."""
+        from factchecker.pipeline.factcheck_pipeline import PipelineExecutionError
         request_id_var.set("error-test-5")
 
         @log_stage("Pre-raise Error Async")
@@ -352,16 +357,17 @@ class TestErrorLogging:
             raise ValueError("Should be logged before raise")
 
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(ValueError) as exc_info:
+            with pytest.raises(PipelineExecutionError) as exc_info:
                 await failing_task()
 
         # Verify error was logged
         assert "Pre-raise Error Async' failed" in caplog.text
-        # Verify exception is still raised
-        assert str(exc_info.value) == "Should be logged before raise"
+        # Verify exception is still raised with original message
+        assert "Should be logged before raise" in str(exc_info.value)
 
     def test_sync_decorator_logs_error_before_raising(self, caplog):
         """Test that sync decorator logs error before re-raising exception."""
+        from factchecker.pipeline.factcheck_pipeline import PipelineExecutionError
         request_id_var.set("error-test-6")
 
         @log_stage("Pre-raise Error Sync")
@@ -369,13 +375,13 @@ class TestErrorLogging:
             raise RuntimeError("Should be logged before raise")
 
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(RuntimeError) as exc_info:
+            with pytest.raises(PipelineExecutionError) as exc_info:
                 failing_task()
 
         # Verify error was logged
         assert "Pre-raise Error Sync' failed" in caplog.text
-        # Verify exception is still raised
-        assert str(exc_info.value) == "Should be logged before raise"
+        # Verify exception is still raised with original message
+        assert "Should be logged before raise" in str(exc_info.value)
 
 
 # ============================================================================
