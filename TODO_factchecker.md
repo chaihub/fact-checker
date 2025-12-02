@@ -717,6 +717,7 @@ ruff format .
 
 # Test specific function
 pytest src/factchecker/extractors/tests/test_text_extractor.py::test_text_extraction_basic -v
+pytest src/factchecker/tests/test_pipeline.py::test_pipeline_initialization -v
 ```
 
 ---
