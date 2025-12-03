@@ -27,6 +27,7 @@ sphinx-rtd-theme>=2.0.0
 # Debugging
 ipdb>=0.13.13
 pdbpp>=0.10.3
+debugpy>=1.8.17
 
 # Performance Profiling
 pytest-benchmark>=4.0.0

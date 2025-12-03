@@ -1,6 +1,31 @@
 # FactChecker Implementation Tasks
 
-## 📋 Latest Session Summary (November 30, 2025)
+---
+
+## 🚀 START HERE
+
+### Current Priority Tasks
+- **Manually verify the error bubbling tests**
+
+---
+
+## 📋 Latest Session Summary (December 2, 2025)
+
+✅ **Task 6.2.5 - Error Handling Implementation: COMPLETE**
+- Enhanced error context tracking system implemented
+- All 63 tests passing (31 logging + 32 pipeline)
+- New ErrorDetails model captures complete exception context
+- Pipeline never raises exceptions—always returns FactCheckResponse with ERROR verdict
+- Sensitive data automatically sanitized in error parameters
+- Request ID preserved and propagated through error responses
+- Four new error-specific tests added to TestPipeline64c class:
+  - test_error_details_capture_cache_error
+  - test_error_details_capture_extraction_error
+  - test_error_response_includes_debugging_info
+  - test_error_parameters_sanitization
+- Implementation summary: IMPLEMENTATION_COMPLETE.md
+
+## 📋 Previous Session Summary (November 30, 2025)
 
 ✅ **Task 1.2.5 - Logging Configuration Tests: COMPLETE**
 - 31/31 comprehensive unit tests now passing
@@ -357,30 +382,32 @@ This document tracks all granular tasks for implementing the FactChecker compone
   - [x] All methods have complete type hints
   - [x] Request ID propagation through all stages
   - [x] Comprehensive test suite (6 new tests)
-- [ ] **6.2.4b** End-to-end skeleton test
-  - [ ] Test full pipeline execution flow with all mocked stages
-  - [ ] Verify data flows correctly through all stages
-  - [ ] Test with sample `FactCheckRequest` inputs
-  - [ ] Verify output matches expected `FactCheckResponse` structure
-  - [ ] Test request ID propagation through all stages
-- [ ] **6.2.4c** Stage integration and composition test
-  - [ ] Test chaining of mocked stages together
-  - [ ] Test error propagation through pipeline
-  - [ ] Test logging/tracing at each stage
-  - [ ] Verify stage output becomes next stage input
-- [ ] **6.2.4d** Pipeline configuration validation
-  - [ ] Verify all required components are wired correctly
-  - [ ] Test dependency injection of mocks
-  - [ ] Validate configuration before execution
-  - [ ] Test component initialization order
-- [ ] **6.2.4** Implement request ID generation and tracing
-  - [ ] Generate unique request IDs for each claim check
-  - [ ] Trace request ID through all mocked stages
-  - [ ] Include request ID in all stage logging
-- [ ] **6.2.5** Implement basic error handling for skeleton
-  - [ ] Test exception propagation through mocked stages
-  - [ ] Test basic error recovery at stage level (skeleton scope only)
-  - [ ] Defer sophisticated recovery logic to Phase 8
+- [x] **6.2.4b** End-to-end skeleton test ✅ COMPLETE
+   - [x] Test full pipeline execution flow with all mocked stages
+   - [x] Verify data flows correctly through all stages
+   - [x] Test with sample `FactCheckRequest` inputs
+   - [x] Verify output matches expected `FactCheckResponse` structure
+   - [x] Test request ID propagation through all stages
+- [x] **6.2.4c** Stage integration and composition test ✅ COMPLETE
+   - [x] Test chaining of mocked stages together
+   - [x] Test error propagation through pipeline
+   - [x] Test logging/tracing at each stage
+   - [x] Verify stage output becomes next stage input
+- [x] **6.2.4d** Pipeline configuration validation ✅ COMPLETE
+   - [x] Verify all required components are wired correctly
+   - [x] Test dependency injection of mocks
+   - [x] Validate configuration before execution
+   - [x] Test component initialization order
+- [x] **6.2.4** Implement request ID generation and tracing ✅ COMPLETE
+   - [x] Generate unique request IDs for each claim check
+   - [x] Trace request ID through all mocked stages
+   - [x] Include request ID in all stage logging
+- [x] **6.2.5** Implement basic error handling for skeleton ✅ COMPLETE
+   - [x] Test exception propagation through mocked stages
+   - [x] Test basic error recovery at stage level (skeleton scope only)
+   - [x] Pipeline never raises exceptions—always returns FactCheckResponse with ERROR verdict
+   - [x] Sensitive data automatically sanitized in error parameters
+   - [x] Request ID preserved and propagated through error responses
 
 ### 6.3 Pipeline Integration
 *Note: Move these higher priority after skeleton is working. These test real component integration with the mocked pipeline framework.*
@@ -718,6 +745,9 @@ ruff format .
 # Test specific function
 pytest src/factchecker/extractors/tests/test_text_extractor.py::test_text_extraction_basic -v
 pytest src/factchecker/tests/test_pipeline.py::test_pipeline_initialization -v
+# RUN WITH VERBOSE OUTPUT AND LOGGING:
+pytest src/factchecker/tests/test_pipeline.py -v -s --log-cli-level=INFO
+# To debug a single test: set breakpoints, then select the test name in the editor, then select debug configuration 'Python: Debug Test by Name'.
 ```
 
 ---
