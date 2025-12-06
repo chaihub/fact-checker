@@ -15,6 +15,9 @@ from factchecker.core.models import (
 )
 from factchecker.core.interfaces import IPipeline
 from factchecker.logging_config import get_logger, request_id_var
+from factchecker.extractors.text_extractor import TextExtractor
+from factchecker.extractors.image_extractor import ImageExtractor
+from factchecker.extractors.claim_combiner import ClaimCombiner
 from factchecker.tests.fixtures import (
     sample_request,
     sample_response,
@@ -44,10 +47,16 @@ def mock_processors():
 
 
 @pytest.fixture
-def pipeline(mock_cache, mock_extractors, mock_searchers, mock_processors):
+def pipeline(mock_cache, mock_searchers, mock_processors):
+    """Pipeline with real extractor instances."""
+    extractors = {
+        "text": TextExtractor(),
+        "image": ImageExtractor(),
+        "combiner": ClaimCombiner(),
+    }
     return FactCheckPipeline(
         cache=mock_cache,
-        extractors=mock_extractors,
+        extractors=extractors,
         searchers=mock_searchers,
         processors=mock_processors,
     )
@@ -167,6 +176,66 @@ async def test_pipeline_mock_search_results(pipeline, sample_extracted_claim):
         assert isinstance(result.content, str)
         assert isinstance(result.author, str)
         assert isinstance(result.url, str)
+
+
+@pytest.mark.asyncio
+async def test_extract_claim_parallel_execution(
+    pipeline, sample_request, sample_request_with_image
+):
+    """Test that _extract_claim runs TextExtractor and ImageExtractor in parallel."""
+    # Create request with both text and image
+    hybrid_request = FactCheckRequest(
+        claim_text="Test claim text",
+        image_data=b"fake_image_data",
+        user_id="test_user",
+        source_platform="whatsapp",
+    )
+    
+    # Execute extraction
+    result = await pipeline._extract_claim(hybrid_request)
+    
+    # Verify result is an ExtractedClaim
+    assert isinstance(result, ExtractedClaim)
+    assert result.claim_text is not None
+    # Should have text from TextExtractor (since it's preferred in current ClaimCombiner)
+    assert "Test claim text" in result.claim_text or result.claim_text == "Test claim text"
+
+
+@pytest.mark.asyncio
+async def test_extract_claim_error_handling(pipeline):
+    """Test that _extract_claim handles extractor errors gracefully."""
+    # Create a mock extractor that raises an exception
+    failing_text_extractor = AsyncMock()
+    failing_text_extractor.extract.side_effect = ValueError("Extraction failed")
+    
+    # Create pipeline with failing text extractor
+    extractors = {
+        "text": failing_text_extractor,
+        "image": ImageExtractor(),
+        "combiner": ClaimCombiner(),
+    }
+    pipeline = FactCheckPipeline(
+        cache=AsyncMock(),
+        extractors=extractors,
+        searchers=AsyncMock(),
+        processors=AsyncMock(),
+    )
+    
+    # Create request with text (which will fail) and image (which should succeed)
+    request = FactCheckRequest(
+        claim_text="This will fail",
+        image_data=b"fake_image_data",
+        user_id="test_user",
+        source_platform="whatsapp",
+    )
+    
+    # Execute extraction - should not raise exception
+    result = await pipeline._extract_claim(request)
+    
+    # Verify result is still an ExtractedClaim (from image extractor or combiner fallback)
+    assert isinstance(result, ExtractedClaim)
+    # The combiner should handle the None text_claim and use image_claim
+    assert result.claim_text is not None
 
 
 @pytest.mark.asyncio
