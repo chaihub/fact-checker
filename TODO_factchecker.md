@@ -5,49 +5,7 @@
 ## 🚀 START HERE
 
 ### Current Priority Tasks
-- **Manually verify the error bubbling tests**
-
----
-
-## 📋 Latest Session Summary (December 2, 2025)
-
-✅ **Task 6.2.5 - Error Handling Implementation: COMPLETE**
-- Enhanced error context tracking system implemented
-- All 63 tests passing (31 logging + 32 pipeline)
-- New ErrorDetails model captures complete exception context
-- Pipeline never raises exceptions—always returns FactCheckResponse with ERROR verdict
-- Sensitive data automatically sanitized in error parameters
-- Request ID preserved and propagated through error responses
-- Four new error-specific tests added to TestPipeline64c class:
-  - test_error_details_capture_cache_error
-  - test_error_details_capture_extraction_error
-  - test_error_response_includes_debugging_info
-  - test_error_parameters_sanitization
-- Implementation summary: IMPLEMENTATION_COMPLETE.md
-
-## 📋 Previous Session Summary (November 30, 2025)
-
-✅ **Task 1.2.5 - Logging Configuration Tests: COMPLETE**
-- 31/31 comprehensive unit tests now passing
-- All 4 logging components fully tested
-- Test classes: Context Variables, Decorator Timing, Log Formatting, Error Logging, Integration, Edge Cases
-
-✅ **Python Wrapper Scripts - COMPLETE (Solution 3)**
-- 8 production-ready scripts created (~890 lines)
-- 5 comprehensive documentation files (~1700 lines)
-- Bash-free alternative for Windows WSL development
-
-✅ **Logging Test Fixes - COMPLETE**
-- RequestIdFilter class added for proper context injection
-- RequestIdLoggerAdapter class for extra dict handling
-- pytest configuration enhanced with proper formatters
-- conftest.py created for test logging setup
-
-✅ **Task 1.3.5 - Interface Tests: COMPLETE**
-- 60/60 comprehensive unit tests now passing
-- Covers all 4 abstract base classes and 6 concrete implementations
-- Tests: abstract instantiation (5), method definitions (8), extractor compliance (8), searcher compliance (10), processor implementations (6), contract validation (8), dependency injection (5), method overrides (6), properties (4)
-- Fixed pyproject.toml package-dir configuration for proper src/ layout
+- To be defined
 
 ---
 
@@ -97,11 +55,21 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [x] **1.1.5** Implement `Evidence` model
 - [x] **1.1.6** Implement `Reference` model
 - [x] **1.1.7** Implement `FactCheckResponse` model
+- [ ] **1.1.9** Add `ClaimQuestion` model for granular questions
+  - `question_type`: Literal["who", "when", "where", "what", "how", "why"]
+  - `question_text`: str
+  - `related_entity`: Optional[str]
+  - `confidence`: float
+- [ ] **1.1.10** Update `ExtractedClaim` model with `questions` field
+  - Add `questions: List[ClaimQuestion] = []` field
+  - Update model validation
 - [x] **1.1.8** Add model validation tests
   - Test all required fields
   - Test optional fields
   - Test enum constraints
   - Test nested model validation
+  - [ ] Test ClaimQuestion model validation
+  - [ ] Test ExtractedClaim with questions field
 
 ### 1.2 Logging Implementation
 - [x] **1.2.1** Implement `setup_logging()` function
@@ -144,6 +112,27 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [x] **2.1.2** Implement `extract()` method for text input
 - [x] **2.1.3** Implement input type detection logic
 - [x] **2.1.4** Implement metadata collection
+- [ ] **2.1.6** Implement text normalization
+  - Strip whitespace, normalize unicode
+  - Handle encoding issues gracefully
+  - Remove excessive whitespace/newlines
+  - Preserve original for metadata
+- [ ] **2.1.7** Add text validation and edge case handling
+  - Validate min/max length
+  - Handle empty text after normalization (lower confidence)
+  - Handle encoding errors (log warning, attempt recovery)
+  - Handle extremely long text (truncate with warning)
+- [ ] **2.1.8** Enhance metadata collection
+  - Add `word_count`: Word count
+  - Add `sentence_count`: Approximate sentence count
+  - Add `encoding`: Detected encoding
+  - Add `normalized`: Whether normalization was applied
+  - Keep existing: `text_length`, `has_image`
+- [ ] **2.1.9** Implement confidence scoring
+  - Base confidence on text quality metrics
+  - Length appropriateness (not too short/long)
+  - Character encoding validity
+  - Presence of meaningful content
 - [ ] **2.1.5** Unit test TextExtractor
   - [x] Test basic text extraction
   - [x] Test input validation (no claim_text + no image_data fails)
@@ -152,33 +141,115 @@ This document tracks all granular tasks for implementing the FactChecker compone
   - [x] Test metadata population
   - [ ] Test edge cases (empty strings, very long text)
   - [ ] Test special characters and encoding
+  - [ ] Test text normalization
+  - [ ] Test confidence scoring validation
+  - [ ] Test encoding error handling
 
 ### 2.2 ImageExtractor Implementation
 - [x] **2.2.1** Create `ImageExtractor` class extending `BaseExtractor`
 - [x] **2.2.2** Implement `extract()` method for image input
 - [x] **2.2.3** Implement input type detection logic
 - [x] **2.2.4** Add placeholder for OCR logic
+- [ ] **2.2.6** Implement image validation
+  - Validate image format (JPEG, PNG, GIF, WebP)
+  - Check image size limits (max dimensions, file size)
+  - Verify image is readable/not corrupted
+  - Use PIL/Pillow for format detection
+  - Handle unsupported formats (raise ValueError with clear message)
+  - Handle corrupted images (raise ValueError with details)
+- [ ] **2.2.7** Implement image preprocessing pipeline
+  - Convert to RGB if needed
+  - Optional: grayscale conversion for better OCR
+  - Resize if too large (to prevent OCR timeout)
+  - Track preprocessing steps in metadata
+- [ ] **2.2.8** Integrate pytesseract OCR processing
+  - Extract text with confidence scores
+  - Handle OCR errors gracefully
+  - Support multiple languages (configurable)
+  - Handle Tesseract not installed (raise RuntimeError with instructions)
+  - Return OCR text as ExtractedClaim with OCR metadata
+- [ ] **2.2.9** Implement OCR confidence scoring
+  - Base on OCR confidence score (0-100)
+  - Penalize if OCR fails or returns low confidence
+  - Consider image quality factors
+- [ ] **2.2.10** Enhance metadata collection
+  - Add `image_format`: Detected format (JPEG, PNG, etc.)
+  - Add `image_dimensions`: Width x height
+  - Add `ocr_confidence`: OCR confidence score (0-100)
+  - Add `ocr_text_length`: Length of extracted OCR text
+  - Add `ocr_language`: Language used for OCR
+  - Add `preprocessing_applied`: List of preprocessing steps
+  - Keep existing: `image_size`
 - [ ] **2.2.5** Unit test ImageExtractor
   - [x] Test basic image extraction
   - [x] Test input validation
   - [x] Test hybrid extraction
   - [x] Test metadata capture
-  - [ ] Test OCR placeholder (will be fleshed out later)
-  - [ ] Test image format handling
+  - [ ] Test image format handling (JPEG, PNG, GIF, WebP)
   - [ ] Test binary data validation
+  - [ ] Test image validation (corrupted, unsupported formats)
+  - [ ] Test OCR with sample images (use test fixtures)
+  - [ ] Test OCR failure handling
+  - [ ] Test image preprocessing verification
+  - [ ] Test OCR confidence scoring
 
 ### 2.3 OCR Integration (v0.1+)
-- [ ] **2.3.1** Research OCR options (pytesseract vs others)
-- [ ] **2.3.2** Implement OCR in `ImageExtractor.extract()`
-- [ ] **2.3.3** Add OCR confidence scoring
-- [ ] **2.3.4** Test OCR with sample images
+- [x] **2.3.1** Research OCR options (pytesseract vs others) - Using pytesseract
+- [x] **2.3.2** Implement OCR in `ImageExtractor.extract()` - Moved to 2.2.8
+- [x] **2.3.3** Add OCR confidence scoring - Moved to 2.2.9
+- [ ] **2.3.4** Test OCR with sample images - Moved to 2.2.5
 - [ ] **2.3.5** Benchmark OCR performance
+- [ ] **2.3.6** Implement OCR preprocessing improvements (v0.1+)
+  - Contrast enhancement
+  - Noise reduction
+  - Advanced image quality improvements
 
 ### 2.4 Advanced Text Extraction (v0.1+)
 - [ ] **2.4.1** Implement NLP-based claim segmentation (spaCy)
 - [ ] **2.4.2** Extract key entities and claims
 - [ ] **2.4.3** Implement confidence scoring for extractions
 - [ ] **2.4.4** Test with various claim formats
+
+### 2.5 ClaimCombiner Implementation
+- [ ] **2.5.1** Create `ClaimCombiner` class
+  - Create `src/factchecker/extractors/claim_combiner.py`
+  - Design interface for combining extractor outputs
+- [ ] **2.5.2** Implement text merging logic
+  - Combine text from TextExtractor and ImageExtractor (if both available)
+  - Handle text-only combination
+  - Handle image-only combination (OCR text)
+  - Handle hybrid combination (text + OCR)
+  - Prefer higher confidence source if conflicts
+  - Log warnings for conflicts
+- [ ] **2.5.3** Implement rule-based question generation
+  - Extract entities using regex patterns:
+    - Person names for "who" questions
+    - Dates/times for "when" questions
+    - Locations for "where" questions
+    - Main claim content for "what" questions
+  - Generate questions based on detected entities
+  - Assign confidence scores to questions
+  - Handle question generation failures gracefully (return claim without questions)
+- [ ] **2.5.4** Implement confidence score merging
+  - Combine confidence scores from both extractors
+  - Weight by source quality
+  - Handle single-source scenarios
+- [ ] **2.5.5** Enhance metadata in combined claim
+  - Merge metadata from both sources
+  - Track combination method used
+  - Include source information
+- [ ] **2.5.6** Implement error handling
+  - Handle both extractors returning None (return error claim with low confidence)
+  - Handle text merging conflicts (prefer higher confidence, log warning)
+  - Handle question generation failures (return claim without questions, log warning)
+- [ ] **2.5.7** Unit test ClaimCombiner
+  - Test text-only combination
+  - Test image-only combination
+  - Test hybrid combination (text + image)
+  - Test question generation for various claim types
+  - Test confidence score merging
+  - Test edge cases (empty inputs, conflicting data)
+  - Test error handling scenarios
 
 ---
 
@@ -411,16 +482,32 @@ This document tracks all granular tasks for implementing the FactChecker compone
 
 ### 6.3 Pipeline Integration
 *Note: Move these higher priority after skeleton is working. These test real component integration with the mocked pipeline framework.*
-- [ ] **6.3.1** Wire extractors into pipeline
-- [ ] **6.3.2** Wire searchers into pipeline
-- [ ] **6.3.3** Wire processors into pipeline
-- [ ] **6.3.4** Wire storage/cache into pipeline
-- [ ] **6.3.5** Test integrated pipeline components
+- [ ] **6.3.1** Update pipeline for parallel extractor execution
+  - Modify `_extract_claim()` to run TextExtractor and ImageExtractor in parallel using `asyncio.gather()`
+  - TextExtractor processes `claim_text` if available (returns ExtractedClaim or None)
+  - ImageExtractor processes `image_data` if available (returns ExtractedClaim or None)
+  - Handle extractor errors gracefully (return None for failed extractor)
+- [ ] **6.3.2** Integrate ClaimCombiner stage into pipeline
+  - Add `_combine_claims()` stage method after extraction
+  - Pass TextExtractor and ImageExtractor results to ClaimCombiner
+  - Update pipeline flow: Extract Claims (parallel) → Combine Claims → Build Search Parameters
+- [ ] **6.3.3** Update search parameter building to use questions
+  - Modify `_build_search_params()` to use questions from combined claim
+  - Generate search queries from questions (who, when, where, what)
+  - Fall back to claim text if no questions available
+- [ ] **6.3.4** Wire searchers into pipeline
+- [ ] **6.3.5** Wire processors into pipeline
+- [ ] **6.3.6** Wire storage/cache into pipeline
+- [ ] **6.3.7** Test integrated pipeline components
+  - [ ] Test parallel extractor execution
   - [ ] Test real TextExtractor + ImageExtractor with pipeline
+  - [ ] Test ClaimCombiner integration
+  - [ ] Test question usage in search parameter building
   - [ ] Test real TwitterSearcher + BlueSkySearcher with pipeline
   - [ ] Test real ResultAnalyzer + ResponseGenerator with pipeline
   - [ ] Test Cache and Database integration
   - [ ] Verify component outputs match expected interface contracts
+  - [ ] Test error propagation through pipeline with real components
 
 ---
 
@@ -441,13 +528,25 @@ This document tracks all granular tasks for implementing the FactChecker compone
 
 ### 7.3 Extractor Module Tests
 - [x] **7.3.1** TextExtractor unit tests (5 tests created)
-  - [ ] Add edge case tests
-  - [ ] Add encoding tests
+  - [ ] Add edge case tests (empty strings, very long text)
+  - [ ] Add encoding tests (UTF-8, Latin-1, emoji handling)
+  - [ ] Add normalization verification tests
+  - [ ] Add confidence scoring validation tests
   - [ ] Add performance tests
 - [x] **7.3.2** ImageExtractor unit tests (4 tests created)
-  - [ ] Add format handling tests
-  - [ ] Add binary data tests
-  - [ ] Add OCR tests (when implemented)
+  - [ ] Add format handling tests (JPEG, PNG, GIF, WebP)
+  - [ ] Add binary data validation tests
+  - [ ] Add OCR tests with sample images
+  - [ ] Add OCR failure handling tests
+  - [ ] Add image preprocessing verification tests
+- [ ] **7.3.3** ClaimCombiner unit tests
+  - [ ] Test text-only combination
+  - [ ] Test image-only combination
+  - [ ] Test hybrid combination (text + image)
+  - [ ] Test question generation for various claim types
+  - [ ] Test confidence score merging
+  - [ ] Test edge cases (empty inputs, conflicting data)
+  - [ ] Test error handling scenarios
 
 ### 7.4 Searcher Module Tests
 - [x] **7.4.1** TwitterSearcher unit tests (4 tests created)
