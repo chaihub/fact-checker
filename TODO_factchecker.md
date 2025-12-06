@@ -211,9 +211,13 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [ ] **2.4.4** Test with various claim formats
 
 ### 2.5 ClaimCombiner Implementation
-- [ ] **2.5.1** Create `ClaimCombiner` class
-  - Create `src/factchecker/extractors/claim_combiner.py`
-  - Design interface for combining extractor outputs
+- [x] **2.5.1** Create `ClaimCombiner` class
+  - [x] Create `src/factchecker/extractors/claim_combiner.py`
+  - [x] Design interface for combining extractor outputs
+  - [x] Implement basic structure with `combine()` method
+  - [x] Add error handling for None inputs
+  - [x] Add logging integration
+  - [x] Export in `__init__.py`
 - [ ] **2.5.2** Implement text merging logic
   - Combine text from TextExtractor and ImageExtractor (if both available)
   - Handle text-only combination
@@ -482,15 +486,18 @@ This document tracks all granular tasks for implementing the FactChecker compone
 
 ### 6.3 Pipeline Integration
 *Note: Move these higher priority after skeleton is working. These test real component integration with the mocked pipeline framework.*
-- [ ] **6.3.1** Update pipeline for parallel extractor execution
-  - Modify `_extract_claim()` to run TextExtractor and ImageExtractor in parallel using `asyncio.gather()`
-  - TextExtractor processes `claim_text` if available (returns ExtractedClaim or None)
-  - ImageExtractor processes `image_data` if available (returns ExtractedClaim or None)
-  - Handle extractor errors gracefully (return None for failed extractor)
-- [ ] **6.3.2** Integrate ClaimCombiner stage into pipeline
-  - Add `_combine_claims()` stage method after extraction
-  - Pass TextExtractor and ImageExtractor results to ClaimCombiner
-  - Update pipeline flow: Extract Claims (parallel) → Combine Claims → Build Search Parameters
+- [x] **6.3.1** Update pipeline for parallel extractor execution ✅ COMPLETE
+  - [x] Modified `_extract_claim()` to run TextExtractor and ImageExtractor in parallel using `asyncio.gather()`
+  - [x] TextExtractor processes `claim_text` if available (returns ExtractedClaim or None)
+  - [x] ImageExtractor processes `image_data` if available (returns ExtractedClaim or None)
+  - [x] Handle extractor errors gracefully using `return_exceptions=True` in `asyncio.gather()`
+  - [x] Extractors are called directly without helper functions
+  - [x] Updated `__init__` to expect extractors dict with "text", "image", and optionally "combiner" keys
+- [x] **6.3.2** Integrate ClaimCombiner into pipeline ✅ COMPLETE
+  - [x] ClaimCombiner integrated directly within `_extract_claim()` method (not as separate stage)
+  - [x] TextExtractor and ImageExtractor results passed to ClaimCombiner after parallel extraction
+  - [x] Pipeline flow: Extract Claims (parallel) → Combine Claims (within same method) → Build Search Parameters
+  - [x] ClaimCombiner initialized in `__init__` with default instance if not provided
 - [ ] **6.3.3** Update search parameter building to use questions
   - Modify `_build_search_params()` to use questions from combined claim
   - Generate search queries from questions (who, when, where, what)

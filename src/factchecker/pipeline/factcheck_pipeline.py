@@ -17,6 +17,9 @@ from factchecker.core.models import (
     ErrorDetails,
 )
 from factchecker.core.interfaces import IPipeline
+from factchecker.extractors.claim_combiner import ClaimCombiner
+from factchecker.extractors.text_extractor import TextExtractor
+from factchecker.extractors.image_extractor import ImageExtractor
 from factchecker.logging_config import (
     get_logger,
     log_stage,
@@ -51,9 +54,12 @@ class FactCheckPipeline(IPipeline):
 
     def __init__(self, cache, extractors, searchers, processors):
         self.cache = cache
-        self.extractors = extractors
         self.searchers = searchers
         self.processors = processors
+        # Extractors dict should contain "text", "image", and optionally "combiner"
+        self.text_extractor: TextExtractor = extractors.get("text")
+        self.image_extractor: ImageExtractor = extractors.get("image")
+        self.claim_combiner: ClaimCombiner = extractors.get("combiner", ClaimCombiner())
 
     async def check_claim(self, request: FactCheckRequest) -> FactCheckResponse:
         """Execute full fact-checking pipeline."""
@@ -125,9 +131,44 @@ class FactCheckPipeline(IPipeline):
         return await self.cache.get(cache_key)
 
     @log_stage("Claim Extraction")
-    async def _extract_claim(self, request: FactCheckRequest):
-        """Extract structured claim from text or image."""
-        return await self.extractors.extract(request.claim_text, request.image_data)
+    async def _extract_claim(self, request: FactCheckRequest) -> ExtractedClaim:
+        """Extract structured claim from text or image.
+        
+        Runs TextExtractor and ImageExtractor in parallel, then combines
+        their results using ClaimCombiner.
+        """
+        # Execute extractors in parallel with error handling
+        # Use asyncio.sleep(0) to return None when no input is available
+        results = await asyncio.gather(
+            self.text_extractor.extract(request.claim_text, None)
+            if request.claim_text
+            else asyncio.sleep(0),
+            self.image_extractor.extract(None, request.image_data)
+            if request.image_data
+            else asyncio.sleep(0),
+            return_exceptions=True,
+        )
+        
+        # Extract results and handle exceptions
+        text_claim = None
+        if isinstance(results[0], Exception):
+            logger.warning(
+                f"TextExtractor failed: {str(results[0])}", exc_info=True
+            )
+        else:
+            text_claim = results[0]
+        
+        image_claim = None
+        if isinstance(results[1], Exception):
+            logger.warning(
+                f"ImageExtractor failed: {str(results[1])}", exc_info=True
+            )
+        else:
+            image_claim = results[1]
+        
+        # Combine results using ClaimCombiner
+        combined_claim = await self.claim_combiner.combine(text_claim, image_claim)
+        return combined_claim
 
     @log_stage("Search Parameter Building")
     async def _build_search_params(self, claim: ExtractedClaim) -> dict:
