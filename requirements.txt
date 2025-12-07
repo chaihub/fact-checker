@@ -27,6 +27,7 @@ httpx>=0.24.0
 python-dotenv>=1.0.0
 python-dateutil>=2.8.0
 pytz>=2023.3
+chardet>=5.0.0
 
 # Logging & Monitoring
 python-json-logger>=2.0.0

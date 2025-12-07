@@ -112,38 +112,32 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [x] **2.1.2** Implement `extract()` method for text input
 - [x] **2.1.3** Implement input type detection logic
 - [x] **2.1.4** Implement metadata collection
-- [ ] **2.1.6** Implement text normalization
+- [x] **2.1.6** Implement text normalization
   - Strip whitespace, normalize unicode
   - Handle encoding issues gracefully
   - Remove excessive whitespace/newlines
   - Preserve original for metadata
-- [ ] **2.1.7** Add text validation and edge case handling
+- [x] **2.1.7** Add text validation and edge case handling
   - Validate min/max length
-  - Handle empty text after normalization (lower confidence)
+  - Handle empty text after normalization (raises ValueError)
   - Handle encoding errors (log warning, attempt recovery)
   - Handle extremely long text (truncate with warning)
-- [ ] **2.1.8** Enhance metadata collection
+- [x] **2.1.8** Enhance metadata collection
   - Add `word_count`: Word count
   - Add `sentence_count`: Approximate sentence count
   - Add `encoding`: Detected encoding
   - Add `normalized`: Whether normalization was applied
   - Keep existing: `text_length`, `has_image`
-- [ ] **2.1.9** Implement confidence scoring
-  - Base confidence on text quality metrics
-  - Length appropriateness (not too short/long)
-  - Character encoding validity
-  - Presence of meaningful content
-- [ ] **2.1.5** Unit test TextExtractor
+- [x] **2.1.5** Unit test TextExtractor
   - [x] Test basic text extraction
   - [x] Test input validation (no claim_text + no image_data fails)
   - [x] Test hybrid extraction (both inputs)
   - [x] Test image-only extraction
   - [x] Test metadata population
-  - [ ] Test edge cases (empty strings, very long text)
-  - [ ] Test special characters and encoding
-  - [ ] Test text normalization
-  - [ ] Test confidence scoring validation
-  - [ ] Test encoding error handling
+  - [x] Test edge cases (empty strings, very long text)
+  - [x] Test special characters and encoding
+  - [x] Test text normalization
+  - [x] Test encoding error handling
 
 ### 2.2 ImageExtractor Implementation
 - [x] **2.2.1** Create `ImageExtractor` class extending `BaseExtractor`
@@ -208,6 +202,10 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [ ] **2.4.1** Implement NLP-based claim segmentation (spaCy)
 - [ ] **2.4.2** Extract key entities and claims
 - [ ] **2.4.3** Implement confidence scoring for extractions
+  - Base confidence on text quality metrics
+  - Length appropriateness (not too short/long)
+  - Character encoding validity
+  - Presence of meaningful content
 - [ ] **2.4.4** Test with various claim formats
 
 ### 2.5 ClaimCombiner Implementation

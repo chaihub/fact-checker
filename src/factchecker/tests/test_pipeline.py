@@ -179,9 +179,7 @@ async def test_pipeline_mock_search_results(pipeline, sample_extracted_claim):
 
 
 @pytest.mark.asyncio
-async def test_extract_claim_parallel_execution(
-    pipeline, sample_request, sample_request_with_image
-):
+async def test_extract_claim_parallel_execution(pipeline):
     """Test that _extract_claim runs TextExtractor and ImageExtractor in parallel."""
     # Create request with both text and image
     hybrid_request = FactCheckRequest(
