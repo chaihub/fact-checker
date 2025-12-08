@@ -5,7 +5,7 @@
 ## 🚀 START HERE
 
 ### Current Priority Tasks
-- To be defined
+- Implement image extractor
 
 ---
 

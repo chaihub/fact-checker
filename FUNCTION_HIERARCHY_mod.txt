@@ -1,0 +1,20 @@
+CALL STACK HIERARCHY: test_extract_claim_parallel_execution
+═══════════════════════════════════════════════════════════════════════════
+
+test_extract_claim_parallel_execution [from test_pipeline.py]
+  │
+  ├─ Create pipeline [Using FactCheckPipeline from factcheck_pipeline.py]
+  |   ├─ Create text_extractor [Using TextExtractor from extractors/text_extractor.py]
+  │   ├─ Create image_extractor [Using ImageExtractor from extractors/image_extractor.py]
+  │   └─ Create claim_combiner [Using ClaimCombiner from extractors/claim_combiner.py]
+  │
+  ├─ Create hybrid_request [Using FactCheckRequest from models.py]
+  │
+  ├─ pipeline._extract_claim [from factcheck_pipeline.py]
+  │   │
+  │   └─ asyncio.gather [from asyncio package]
+  │   |   ├─ pipeline.text_extractor.extract [from extractors/text_extractor.py]
+  │   |   └─ pipeline.image_extractor.extract [from extractors/image_extractor.py]
+  │   └─ pipeline.claim_combiner.combine [from extractors/claim_combiner.py]
+
+═══════════════════════════════════════════════════════════════════════════

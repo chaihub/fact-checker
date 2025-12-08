@@ -1,0 +1,43 @@
+CALL STACK HIERARCHY: test_full_pipeline_data_flow_request_to_response
+══════════════════════════════════════════════════════════════════════
+Created using Cursor 'Ask' mode. Prompt: I have created documentation in file @TEST_HIERARCHY_mod.txt that shows the critical data elements and functions called when executing the test test_full_pipeline_end_to_end_with_all_stages in file @src/factchecker/tests/test_pipeline.py . This excludes secondary data elements and function calls such as logging. For the critical data elements, I have documented the data class and the filename. For the critical functions, I have captured the file name. Critical data elements' parent classes are shown within the visual hierarchy, and so are critical function calls. The overall result is a compact representation of the sequence of critical funtion calls and data element creation, which helps me understand the sequence of events immediately.
+Study this document carefully. Then create a similar document for the test test_full_pipeline_data_flow_request_to_response . If you create any other intermediate documents, delete them afterwards.
+═══════════════════════════════════════════════════════════════════════════
+
+test_full_pipeline_data_flow_request_to_response [from src/factchecker/tests/test_pipeline.py]
+  │
+  ├─ Create pipeline [Using FactCheckPipeline from pipeline/factcheck_pipeline.py]
+  |   ├─ Create pipeline.text_extractor [Using TextExtractor from extractors/text_extractor.py]
+  |   ├─ Create pipeline.image_extractor [Using ImageExtractor from extractors/image_extractor.py]
+  |   └─ Create pipeline.claim_combiner [Using ClaimCombiner from extractors/claim_combiner.py]
+  │
+  ├─ Create mock_cache [Using AsyncMock]
+  │
+  ├─ Create mock_extractors [Using AsyncMock]
+  │
+  ├─ Create sample_request [Using FactCheckRequest from core/models.py]
+  │
+  ├─ Create sample_extracted_claim [Using ExtractedClaim from core/models.py]
+  │
+  ├─ pipeline.check_claim [from pipeline/factcheck_pipeline.py]
+  │   │
+  │   ├─ pipeline._check_cache [from pipeline/factcheck_pipeline.py]
+  │   │
+  │   ├─ pipeline._extract_claim [from pipeline/factcheck_pipeline.py]
+  │   │   ├─ asyncio.gather [from asyncio package]
+  │   │   │   ├─ pipeline.text_extractor.extract [from extractors/text_extractor.py]
+  │   │   │   └─ pipeline.image_extractor.extract [from extractors/image_extractor.py]
+  │   │   └─ pipeline.claim_combiner.combine [from extractors/claim_combiner.py]
+  │   │
+  │   ├─ pipeline._build_search_params [from pipeline/factcheck_pipeline.py]
+  │   │
+  │   ├─ pipeline._search_sources [from pipeline/factcheck_pipeline.py]
+  │   │   └─ Create SearchResult objects [from core/models.py]
+  │   │
+  │   ├─ pipeline._generate_response [from pipeline/factcheck_pipeline.py]
+  │   │   ├─ Create evidence [using Evidence from core/models.py]
+  │   │   └─ Create reference [using Reference from core/models.py]
+  │   │
+  │   ├─ pipeline._cache_response [from pipeline/factcheck_pipeline.py]
+
+══════════════════════════════════════════════════════════════════════
