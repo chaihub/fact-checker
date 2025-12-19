@@ -5,7 +5,7 @@
 ## 🚀 START HERE
 
 ### Current Priority Tasks
-- Implement image extractor
+- Implement identification of 0 / 1 / 2 tweets and use this info
 
 ---
 
@@ -144,48 +144,48 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [x] **2.2.2** Implement `extract()` method for image input
 - [x] **2.2.3** Implement input type detection logic
 - [x] **2.2.4** Add placeholder for OCR logic
-- [ ] **2.2.6** Implement image validation
-  - Validate image format (JPEG, PNG, GIF, WebP)
-  - Check image size limits (max dimensions, file size)
-  - Verify image is readable/not corrupted
-  - Use PIL/Pillow for format detection
-  - Handle unsupported formats (raise ValueError with clear message)
-  - Handle corrupted images (raise ValueError with details)
-- [ ] **2.2.7** Implement image preprocessing pipeline
-  - Convert to RGB if needed
-  - Optional: grayscale conversion for better OCR
-  - Resize if too large (to prevent OCR timeout)
-  - Track preprocessing steps in metadata
-- [ ] **2.2.8** Integrate pytesseract OCR processing
-  - Extract text with confidence scores
-  - Handle OCR errors gracefully
-  - Support multiple languages (configurable)
-  - Handle Tesseract not installed (raise RuntimeError with instructions)
-  - Return OCR text as ExtractedClaim with OCR metadata
-- [ ] **2.2.9** Implement OCR confidence scoring
-  - Base on OCR confidence score (0-100)
-  - Penalize if OCR fails or returns low confidence
-  - Consider image quality factors
-- [ ] **2.2.10** Enhance metadata collection
-  - Add `image_format`: Detected format (JPEG, PNG, etc.)
-  - Add `image_dimensions`: Width x height
-  - Add `ocr_confidence`: OCR confidence score (0-100)
-  - Add `ocr_text_length`: Length of extracted OCR text
-  - Add `ocr_language`: Language used for OCR
-  - Add `preprocessing_applied`: List of preprocessing steps
-  - Keep existing: `image_size`
-- [ ] **2.2.5** Unit test ImageExtractor
-  - [x] Test basic image extraction
-  - [x] Test input validation
-  - [x] Test hybrid extraction
-  - [x] Test metadata capture
-  - [ ] Test image format handling (JPEG, PNG, GIF, WebP)
-  - [ ] Test binary data validation
-  - [ ] Test image validation (corrupted, unsupported formats)
-  - [ ] Test OCR with sample images (use test fixtures)
-  - [ ] Test OCR failure handling
-  - [ ] Test image preprocessing verification
-  - [ ] Test OCR confidence scoring
+- [x] **2.2.6** Implement image validation ✅ COMPLETE
+  - [x] Validate image format (JPEG, PNG, GIF, WebP)
+  - [x] Check image size limits (max dimensions, file size)
+  - [x] Verify image is readable/not corrupted
+  - [x] Use PIL/Pillow for format detection
+  - [x] Handle unsupported formats (raise ValueError with clear message)
+  - [x] Handle corrupted images (raise ValueError with details)
+- [x] **2.2.7** Implement image preprocessing pipeline ✅ COMPLETE
+  - [x] Convert to RGB if needed
+  - [x] Grayscale conversion for better OCR
+  - [x] Resize if too large (to prevent OCR timeout)
+  - [x] Track preprocessing steps in metadata
+- [x] **2.2.8** Integrate pytesseract OCR processing ✅ COMPLETE
+  - [x] Extract text with confidence scores
+  - [x] Handle OCR errors gracefully
+  - [x] Support multiple languages (configurable)
+  - [x] Handle Tesseract not installed gracefully
+  - [x] Return OCR text as ExtractedClaim with OCR metadata
+- [x] **2.2.9** Implement OCR confidence scoring ✅ COMPLETE
+  - [x] Base on OCR confidence score (0-100)
+  - [x] Penalize if OCR fails or returns low confidence
+  - [x] Consider image quality factors
+- [x] **2.2.10** Enhance metadata collection ✅ COMPLETE
+  - [x] Add `image_format`: Detected format (JPEG, PNG, etc.)
+  - [x] Add `image_dimensions`: Width x height
+  - [x] Add `ocr_confidence`: OCR confidence score (0-100)
+  - [x] Add `ocr_text_length`: Length of extracted OCR text
+  - [x] Add `ocr_language`: Language used for OCR
+  - [x] Add `preprocessing_applied`: List of preprocessing steps
+  - [x] Keep existing: `image_size`
+- [x] **2.2.5** Unit test ImageExtractor ✅ COMPLETE (32/32 tests)
+   - [x] Test basic image extraction
+   - [x] Test input validation
+   - [x] Test hybrid extraction
+   - [x] Test metadata capture
+   - [x] Test image format handling (JPEG, PNG, GIF, WebP)
+   - [x] Test binary data validation
+   - [x] Test image validation (corrupted, unsupported formats)
+   - [x] Test OCR with sample images (use test fixtures)
+   - [x] Test OCR failure handling
+   - [x] Test image preprocessing verification
+   - [x] Test OCR confidence scoring
 
 ### 2.3 OCR Integration (v0.1+)
 - [x] **2.3.1** Research OCR options (pytesseract vs others) - Using pytesseract
