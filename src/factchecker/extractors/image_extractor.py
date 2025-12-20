@@ -12,6 +12,8 @@ from factchecker.core.interfaces import BaseExtractor
 from factchecker.core.models import ExtractedClaim
 from factchecker.logging_config import get_logger
 
+from factchecker.debug_utils import dump_image_debug
+
 logger = get_logger(__name__)
 
 SUPPORTED_FORMATS: frozenset[str] = frozenset({"JPEG", "PNG", "GIF", "WEBP"})
@@ -178,6 +180,8 @@ class ImageExtractor(BaseExtractor):
         if self.convert_to_grayscale and image.mode != "L":
             image = image.convert("L")
             steps.append("converted_to_grayscale")
+
+        dump_image_debug(image, "after_preprocessing")
 
         return image, steps
 

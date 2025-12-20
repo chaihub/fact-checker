@@ -151,3 +151,6 @@ secrets/
 tmp/
 temp/
 *.tmp
+
+# Debug output
+.debug_images/

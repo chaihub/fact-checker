@@ -371,18 +371,16 @@ class TestSampleImagesBlank:
         image_data = get_sample_image_path("blank.png")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_ocr_text = "PLACEHOLDER_EXPECTED_OUTPUT_BLANK_PNG"
-        # assert result.claim_text == expected_ocr_text
+        expected_ocr_text = ""
+        assert result.claim_text == expected_ocr_text
 
     async def test_sample_images_thumbnail_png(self, extractor):
         """Test extraction from thumbnail.png (50x50)."""
         image_data = get_sample_image_path("thumbnail.png")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_ocr_text = "PLACEHOLDER_EXPECTED_OUTPUT_THUMBNAIL_PNG"
-        # assert result.claim_text == expected_ocr_text
+        expected_ocr_text = ""
+        assert result.claim_text == expected_ocr_text
 
 
 # Format-specific images
@@ -390,25 +388,14 @@ class TestSampleImagesBlank:
 class TestSampleImagesFormats:
     """Test ImageExtractor with different format sample images."""
 
-    async def test_sample_images_jpeg(self, extractor):
-        """Test extraction from sample.jpg (JPEG format)."""
-        image_data = get_sample_image_path("sample.jpg")
-        result = await extractor.extract(claim_text=None, image_data=image_data)
-        assert isinstance(result, ExtractedClaim)
-        assert result.metadata["image_format"] == "JPEG"
-        # TODO: Add expected output after manual inspection
-        expected_ocr_text = "PLACEHOLDER_EXPECTED_OUTPUT_SAMPLE_JPG"
-        # assert result.claim_text == expected_ocr_text
-
     async def test_sample_images_gif(self, extractor):
         """Test extraction from sample.gif (GIF format)."""
         image_data = get_sample_image_path("sample.gif")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
         assert result.metadata["image_format"] == "GIF"
-        # TODO: Add expected output after manual inspection
-        expected_ocr_text = "PLACEHOLDER_EXPECTED_OUTPUT_SAMPLE_GIF"
-        # assert result.claim_text == expected_ocr_text
+        expected_ocr_text = ""
+        assert result.claim_text == expected_ocr_text
 
     async def test_sample_images_webp(self, extractor):
         """Test extraction from sample.webp (WebP format)."""
@@ -416,9 +403,8 @@ class TestSampleImagesFormats:
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
         assert result.metadata["image_format"] == "WEBP"
-        # TODO: Add expected output after manual inspection
-        expected_ocr_text = "PLACEHOLDER_EXPECTED_OUTPUT_SAMPLE_WEBP"
-        # assert result.claim_text == expected_ocr_text
+        expected_ocr_text = ""
+        assert result.claim_text == expected_ocr_text
 
     async def test_sample_images_transparent_png(self, extractor):
         """Test extraction from transparent.png (RGBA format)."""
@@ -428,9 +414,8 @@ class TestSampleImagesFormats:
         assert result.metadata["image_format"] == "PNG"
         # Verify RGB conversion was applied
         assert "converted_to_rgb" in result.metadata["preprocessing_applied"]
-        # TODO: Add expected output after manual inspection
-        expected_ocr_text = "PLACEHOLDER_EXPECTED_OUTPUT_TRANSPARENT_PNG"
-        # assert result.claim_text == expected_ocr_text
+        expected_ocr_text = ""
+        assert result.claim_text == expected_ocr_text
 
 
 # Images with text content
@@ -439,14 +424,12 @@ class TestSampleImagesWithText:
     """Test ImageExtractor with images containing text."""
 
     async def test_sample_images_text_sample(self, extractor):
-        """Test extraction from text_sample.png (contains 'Sample OCR Text')."""
-        image_data = get_sample_image_path("text_sample.png")
-        result = await extractor.extract(claim_text=None, image_data=image_data)
-        assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        # Expected to contain "Sample OCR Text" or similar
-        expected_ocr_text = "PLACEHOLDER_EXPECTED_OUTPUT_TEXT_SAMPLE_PNG"
-        # assert expected_ocr_text in result.claim_text
+         """Test extraction from text_sample.png (contains 'Sample OCR Text')."""
+         image_data = get_sample_image_path("text_sample.png")
+         result = await extractor.extract(claim_text=None, image_data=image_data)
+         assert isinstance(result, ExtractedClaim)
+         expected_ocr_text = "Sample OCR Text"
+         assert expected_ocr_text == result.claim_text
 
 
 # Large/high-resolution images
@@ -461,10 +444,8 @@ class TestSampleImagesLarge:
         assert isinstance(result, ExtractedClaim)
         # Verify resize was applied for large images
         assert any("resized_to_" in step for step in result.metadata["preprocessing_applied"])
-        # TODO: Add expected output after manual inspection
-        # Expected to contain "Large Image Test" or similar
-        expected_ocr_text = "PLACEHOLDER_EXPECTED_OUTPUT_LARGE_PNG"
-        # assert expected_ocr_text in result.claim_text
+        expected_ocr_text = "Large Image Test"
+        assert expected_ocr_text == result.claim_text
 
 
 # Invalid/non-image files for negative testing
