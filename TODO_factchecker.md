@@ -5,7 +5,7 @@
 ## 🚀 START HERE
 
 ### Current Priority Tasks
-- Implement identification of 0 / 1 / 2 tweets and use this info
+- Manually update image testcases with expected output
 
 ---
 
