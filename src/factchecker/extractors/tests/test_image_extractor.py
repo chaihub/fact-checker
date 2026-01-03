@@ -480,9 +480,8 @@ class TestSampleImagesHybrid:
         )
         assert isinstance(result, ExtractedClaim)
         assert result.raw_input_type == "both"
-        # TODO: Add expected output after manual inspection
-        expected_combined_text = "PLACEHOLDER_EXPECTED_OUTPUT_HYBRID_TEXT_AND_IMAGE"
-        # assert expected_combined_text in result.claim_text
+        expected_combined_text = "Sample OCR Text"
+        assert expected_combined_text == result.claim_text
 
     async def test_sample_images_hybrid_text_and_blank(self, extractor):
         """Test hybrid extraction with blank.png and claim text."""
@@ -493,9 +492,8 @@ class TestSampleImagesHybrid:
         )
         assert isinstance(result, ExtractedClaim)
         assert result.raw_input_type == "both"
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_HYBRID_TEXT_AND_BLANK"
-        # assert expected_text in result.claim_text
+        expected_text = ""
+        assert expected_text == result.claim_text
 
 
 # Real-world WhatsApp tweet/screenshot samples - Simple format
@@ -508,117 +506,105 @@ class TestSampleImagesTweetSimple:
         image_data = get_sample_image_path("IMG-20250313-WA0001.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250313_WA0001"
-        # assert expected_text in result.claim_text
+        expected_text = 'Based on Ontario, Canada, placing a 25% Tariff on "Electricity" coming into the United States, I have instructed my Secretary of Commerce to add an ADDITIONAL 25% Tariff, to 50%, on all STEEL and ALUMINUM COMING INTO THE UNITED STATES FROM CANADA, ONE OF THE HIGHEST TARIFFING NATIONS ANYWHERE IN THE WORLD. This will go into effect TOMORROW MORNING, March 12th. Also, Canada must immediately drop their Anti-American Farmer Tariff of 250% to 390% on various U.S. dairy products, which has long been considered outrageous.'
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20250319_WA0001(self, extractor):
         """Test extraction from IMG-20250319-WA0001.jpg."""
         image_data = get_sample_image_path("IMG-20250319-WA0001.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250319_WA0001"
-        # assert expected_text in result.claim_text
+        expected_text = "After years of being held captive by Environmental Extremists, Lunatics, Radicals, and Thugs, allowing other Countries, in particular China, to gain tremendous Economic advantage over us by opening up hundreds of all Coal Fire Power Plants, I am authorizing my Administration to immediately begin producing Energy with BEAUTIFUL, CLEAN COAL."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20250411_WA0004(self, extractor):
         """Test extraction from IMG-20250411-WA0004.jpg."""
         image_data = get_sample_image_path("IMG-20250411-WA0004.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250411_WA0004"
-        # assert expected_text in result.claim_text
+        # Dropped a single quote from the expected text due to clash with the string delimiter.
+        expected_text = 'Since the options data on April 9, data from the Chicago Exchange has also revealed that on April 3, the Trump family fund held $38 billion worth of Nasdaq put options. Meanwhille, the Affinity fund, controlled by Trumps son-in-law Jared Kushner, made a $5.7 billion profit by shorting Apple and Tesla, with the shorting profits transferred to the Dubai Digital Gold Exchange through an SPV in the British Virgin Islands. This is what they call "Make America Great Again."'
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251126_WA0001(self, extractor):
         """Test extraction from IMG-20251126-WA0001.jpg."""
         image_data = get_sample_image_path("IMG-20251126-WA0001.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251126_WA0001"
-        # assert expected_text in result.claim_text
+        expected_text = "I am asking all America First Patriots in Tennessee's 7th Congressional District, who haven't voted yet, to please GET OUT AND VOTE for MAGA Warrior Matt Van Epps, tomorrow, November 26th, the last day to vote early in person. You can win this Election for Matt! PLEASE VOTE FOR MATT VAN EPPS, who has my Complete and Total Endorsement. Polls close at 12 P.M. NOON in most of TN-07, and every vote counts. IF YOU ARE IN LINE BY 12 P.M., STAY IN LINE, AND THEY MUST LET YOU VOTE! TN-07: Early Voting ends November 26th, adn Election Day is December 2nd. GET OUT AND VOTE FOR MATT VAN EPPS - HE WILL NEVER LET YOU DOWN!"
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251201_WA0004(self, extractor):
         """Test extraction from IMG-20251201-WA0004.jpg."""
         image_data = get_sample_image_path("IMG-20251201-WA0004.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251201_WA0004"
-        # assert expected_text in result.claim_text
+        expected_text = "Because I have invoked FAVORED NATIONS STATUS FOR THE UNITED STATES OF AMERICA, DRUG PRICES ARE FALLING AT LEVELS NEVER SEEN BEFORE, 500%, 600%, 700%, and more. No other President has been able to do this, BUT I HAVE!"
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0003(self, extractor):
         """Test extraction from IMG-20251219-WA0003.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0003.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0003"
-        # assert expected_text in result.claim_text
+        expected_text = "If he is your close relative then he should invest in your education, so next time you won't post such questions."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0004(self, extractor):
         """Test extraction from IMG-20251219-WA0004.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0004.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0004"
-        # assert expected_text in result.claim_text
+        expected_text = "Pro tip for 3L monthly income: Invest the entire lump sum in a herd of goats They compound at 1.5-2x annually Set up an STP: Sell a few every month for steady cash flow."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0006(self, extractor):
         """Test extraction from IMG-20251219-WA0006.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0006.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0006"
-        # assert expected_text in result.claim_text
+        expected_text = "The last thing you want to do is promote tribalism when you are one of the smaller tribes. Yet minority 'leaders' do this because it promotes their individual self-interest, regardless of what bad effects this will have on others, including their followers."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0010(self, extractor):
         """Test extraction from IMG-20251219-WA0010.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0010.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0010"
-        # assert expected_text in result.claim_text
+        expected_text = "The Trump tariffs are the largest US tax increase as a percent of GDP in over 30 years."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0016(self, extractor):
         """Test extraction from IMG-20251219-WA0016.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0016.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0016"
-        # assert expected_text in result.claim_text
+        expected_text = "Islam is not a religion. It's a cult. Islamists aren't here to assimilate. They're here to conquer. Stop worrying about offending the pearl clutchers. We've got to SEND THEM HOME NOW or we'll become the United Caliphate of America."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251220_WA0003(self, extractor):
         """Test extraction from IMG-20251220-WA0003.jpg."""
         image_data = get_sample_image_path("IMG-20251220-WA0003.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251220_WA0003"
-        # assert expected_text in result.claim_text
+        expected_text = "MAGA (one year ago): End wars! Expose pedophiles! MAGA (today): Start wars! Protect pedophiles!"
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251220_WA0007(self, extractor):
         """Test extraction from IMG-20251220-WA0007.jpg."""
         image_data = get_sample_image_path("IMG-20251220-WA0007.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251220_WA0007"
-        # assert expected_text in result.claim_text
+        expected_text = "I have just been informed that the highly respected Board of the Kennedy Center, some of the most successful people from all parts of the world, have just voted unanimously to rename the Kennedy Center to the Trump-Kennedy Center, because of the unbelievable work President Trump has done over the last year in saving the building. Not only from the standpoint of its reconstruction, but also financially, and its reputation. Congratulations to President Donald J. Trump, and likewise, congratulations to President Kennedy, because this will be a truly great team long into the future! The building will no doubt attain new levels success and grandeur."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251220_WA0009(self, extractor):
         """Test extraction from IMG-20251220-WA0009.jpg."""
         image_data = get_sample_image_path("IMG-20251220-WA0009.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251220_WA0009"
-        # assert expected_text in result.claim_text
+        expected_text = "Deputy AG Blanche just said the Trump DOJ will miss the Epstein files deadline. He says several hundred thousand docs will be released today, and then over the next couple weeks, I expect several hundred thousand more. All files are required by law to be released today."
+        assert expected_text in result.claim_text
 
 
 # Real-world WhatsApp tweet/screenshot samples - Complex format
@@ -631,243 +617,171 @@ class TestSampleImagesTweetComplex:
         image_data = get_sample_image_path("IMG-20250220-WA0001.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250220_WA0001"
-        # assert expected_text in result.claim_text
+        # Dropped a double quote mark due to conflict with the text string delimiter
+        expected_text = "The gap between the claims made in the Microsoft press release and teh claims made in the actual paper are pretty astounding. From their own paper These measurements do not, by themselves, determine whether the low-energy states detected by interferometry are topological."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20250320_WA0003(self, extractor):
         """Test extraction from IMG-20250320-WA0003.jpg."""
         image_data = get_sample_image_path("IMG-20250320-WA0003.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250320_WA0003"
-        # assert expected_text in result.claim_text
-
-    async def test_sample_images_IMG_20250329_WA0001(self, extractor):
-        """Test extraction from IMG-20250329-WA0001.jpg."""
-        image_data = get_sample_image_path("IMG-20250329-WA0001.jpg")
-        result = await extractor.extract(claim_text=None, image_data=image_data)
-        assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250329_WA0001"
-        # assert expected_text in result.claim_text
-
-    async def test_sample_images_IMG_20250406_WA0001(self, extractor):
-        """Test extraction from IMG-20250406-WA0001.jpg."""
-        image_data = get_sample_image_path("IMG-20250406-WA0001.jpg")
-        result = await extractor.extract(claim_text=None, image_data=image_data)
-        assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250406_WA0001"
-        # assert expected_text in result.claim_text
-
-    async def test_sample_images_IMG_20250411_WA0001(self, extractor):
-        """Test extraction from IMG-20250411-WA0001.jpg."""
-        image_data = get_sample_image_path("IMG-20250411-WA0001.jpg")
-        result = await extractor.extract(claim_text=None, image_data=image_data)
-        assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250411_WA0001"
-        # assert expected_text in result.claim_text
-
-    async def test_sample_images_IMG_20250423_WA0002(self, extractor):
-        """Test extraction from IMG-20250423-WA0002.jpg."""
-        image_data = get_sample_image_path("IMG-20250423-WA0002.jpg")
-        result = await extractor.extract(claim_text=None, image_data=image_data)
-        assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250423_WA0002"
-        # assert expected_text in result.claim_text
-
-    async def test_sample_images_IMG_20250617_WA0004(self, extractor):
-        """Test extraction from IMG-20250617-WA0004.jpg."""
-        image_data = get_sample_image_path("IMG-20250617-WA0004.jpg")
-        result = await extractor.extract(claim_text=None, image_data=image_data)
-        assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250617_WA0004"
-        # assert expected_text in result.claim_text
+        expected_text = "Is Trumpism soluble in vodka?"
+        # Dropped a double quote mark due to conflict with the text string delimiter
+        expected_text2 = "Latest Russian joke: Trump, in the afterlife, gets permission to go back and visit Earth for one hour. He goes into a bar in NYC and asks the bartender how things are going in America. The amazed man says, Wow, sir, we have the most incredible empire thanks to you! Greenland, Panama, and Canada!"
+        assert expected_text in result.claim_text and expected_text2 in result.claim_text
 
     async def test_sample_images_IMG_20250726_WA0008(self, extractor):
         """Test extraction from IMG-20250726-WA0008.jpg."""
         image_data = get_sample_image_path("IMG-20250726-WA0008.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250726_WA0008"
-        # assert expected_text in result.claim_text
+        expected_text = "Absolute comedy that Japan has come out and denied *every* single part of the Truth Social Trade Deal. Just a complete circus."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20250909_WA0011(self, extractor):
         """Test extraction from IMG-20250909-WA0011.jpg."""
         image_data = get_sample_image_path("IMG-20250909-WA0011.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250909_WA0011"
-        # assert expected_text in result.claim_text
+        expected_text = "Let me tell you a fun fact..... China has 7 million Software engineers India 6 million USA 4.4 million Among these 3..... Only India couldn't produce even 1 App, Website, Operating System, Database, Cloud platform, CDN, AI or even Social media that is used by the world"
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20250923_WA0004(self, extractor):
         """Test extraction from IMG-20250923-WA0004.jpg."""
         image_data = get_sample_image_path("IMG-20250923-WA0004.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250923_WA0004"
-        # assert expected_text in result.claim_text
-
-    async def test_sample_images_IMG_20250930_WA0046(self, extractor):
-        """Test extraction from IMG-20250930-WA0046.jpg."""
-        image_data = get_sample_image_path("IMG-20250930-WA0046.jpg")
-        result = await extractor.extract(claim_text=None, image_data=image_data)
-        assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250930_WA0046"
-        # assert expected_text in result.claim_text
+        expected_text = "'डूबते' कोलकाता में 9 लोग करंट से कैसे मर गए?"
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251105_WA0001(self, extractor):
         """Test extraction from IMG-20251105-WA0001.jpg."""
         image_data = get_sample_image_path("IMG-20251105-WA0001.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251105_WA0001"
-        # assert expected_text in result.claim_text
+        expected_text = "Look at the abuse Vivek is getting for posting an innocuous photo with his boys. This is the sh*tshow that Heritage and Tucker have brought upon us. If this continues, I would not be surprised to see mass desertion of blacks, Latinos and other minorities from the GOP. Unreal."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251205_WA0010(self, extractor):
         """Test extraction from IMG-20251205-WA0010.jpg."""
         image_data = get_sample_image_path("IMG-20251205-WA0010.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251205_WA0010"
-        # assert expected_text in result.claim_text
+        expected_text = "All schools in Maharashtra will remain closed on 5 December 2025, after the Maharashtra State Headmasters' Association, along with teachers' and non-teaching-staff unions; called a statewide shutdown to press their demands. Parents and students are advised to take note and plan accordingly."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0007(self, extractor):
         """Test extraction from IMG-20251219-WA0007.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0007.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0007"
-        # assert expected_text in result.claim_text
+        expected_text = "President Trump mentioned Joe Biden 30 times during his economic address in Pennsylvania. That would be 31 times, if you count sleepy son of a bitch, which the audience surely did. Sleepy Joe Biden - have you heard of him? Trump asked."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0009(self, extractor):
         """Test extraction from IMG-20251219-WA0009.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0009.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0009"
-        # assert expected_text in result.claim_text
+        expected_text = "WOMEN IS A BANNED WORD"
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0011(self, extractor):
         """Test extraction from IMG-20251219-WA0011.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0011.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0011"
-        # assert expected_text in result.claim_text
+        expected_text = "Wow: A veteran was asked why he voted for Trump if he now believes his polices hurt people: His answer? Because I was an idiot."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0012(self, extractor):
         """Test extraction from IMG-20251219-WA0012.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0012.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0012"
-        # assert expected_text in result.claim_text
+        expected_text = "If Fox News is sounding the alarm....."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0013(self, extractor):
         """Test extraction from IMG-20251219-WA0013.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0013.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0013"
-        # assert expected_text in result.claim_text
+        expected_text = "Today, I took the first step towards Kristi Noem's impeachment, and called on the Judiciary Committee to open an investigation into her lawlessness. The American people will have justice and we will hold Noem accountable. I'll make sure of it."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0014(self, extractor):
         """Test extraction from IMG-20251219-WA0014.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0014.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0014"
-        # assert expected_text in result.claim_text
+        expected_text = "So if a woman gets a hysterectomy they are not considered women anymore? That's pretty mean."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0015(self, extractor):
         """Test extraction from IMG-20251219-WA0015.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0015.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0015"
-        # assert expected_text in result.claim_text
+        expected_text = "Why is Fox News starting a war on Christmas?"
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251219_WA0018(self, extractor):
         """Test extraction from IMG-20251219-WA0018.jpg."""
         image_data = get_sample_image_path("IMG-20251219-WA0018.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251219_WA0018"
-        # assert expected_text in result.claim_text
+        expected_text = "Pollster: The number of people who say the economy is on the wrong track has skyrocketed up to 56%. The number who say it's on the right track has fallen to 29%. The American people aren't buying the spin that is coming out of the White House."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251220_WA0002(self, extractor):
         """Test extraction from IMG-20251220-WA0002.jpg."""
         image_data = get_sample_image_path("IMG-20251220-WA0002.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251220_WA0002"
-        # assert expected_text in result.claim_text
+        expected_text = "Vivek Ramaswamy NYT op-ed: My social media feeds are littered with hundreds of slurs, most from accounts that I don't recognize, about 'pajeets' and 'street shitters' and calls to deport me 'back to India.'"
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251220_WA0004(self, extractor):
         """Test extraction from IMG-20251220-WA0004.jpg."""
         image_data = get_sample_image_path("IMG-20251220-WA0004.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251220_WA0004"
-        # assert expected_text in result.claim_text
+        expected_text = "Vivek's position is that an Indian born to Indian parents, raised in Indian culture, holding Indian religious beliefs, is every bit as American as a Mayflower descendant as long as he affirms certain propositions. This is absurd on its face. It is an insult to the families who built this nation over four centuries. It is a denial of everything that makes nationhood meaningful."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251220_WA0005(self, extractor):
         """Test extraction from IMG-20251220-WA0005.jpg."""
         image_data = get_sample_image_path("IMG-20251220-WA0005.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251220_WA0005"
-        # assert expected_text in result.claim_text
+        expected_text = "Exclusive: The Department of Health and Human Services has terminated seven grants totaling millions of dollars to the American Academy of Pediatrics. The association has been one of the harshest critics of Health Secretary RFK Jr.'s changes to federal vaccine policy."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251220_WA0006(self, extractor):
         """Test extraction from IMG-20251220-WA0006.jpg."""
         image_data = get_sample_image_path("IMG-20251220-WA0006.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251220_WA0006"
-        # assert expected_text in result.claim_text
+        expected_text = "The little orange bars on the right are what Trump is calling the greatest economy in history."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251220_WA0008(self, extractor):
         """Test extraction from IMG-20251220-WA0008.jpg."""
         image_data = get_sample_image_path("IMG-20251220-WA0008.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251220_WA0008"
-        # assert expected_text in result.claim_text
+        expected_text = "Exclusive: The Trump administration is moving to dismantle the National Center for Atmospheric Research in Colorado, according to a senior White House official, taking aim at one of the world's leading climate research labs."
+        assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251220_WA0010(self, extractor):
         """Test extraction from IMG-20251220-WA0010.jpg."""
         image_data = get_sample_image_path("IMG-20251220-WA0010.jpg")
         result = await extractor.extract(claim_text=None, image_data=image_data)
         assert isinstance(result, ExtractedClaim)
-        # TODO: Add expected output after manual inspection
-        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20251220_WA0010"
-        # assert expected_text in result.claim_text
+        expected_text = "Alright. Everyone can stop now. We have a winner."
+        assert expected_text in result.claim_text
 
 
 # Real-world non-tweet/screenshot samples
@@ -902,6 +816,24 @@ class TestSampleImagesNotTweet:
         expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250322_WA0007"
         # assert expected_text in result.claim_text
 
+    async def test_sample_images_IMG_20250329_WA0001(self, extractor):
+        """Test extraction from IMG-20250329-WA0001.jpg."""
+        image_data = get_sample_image_path("IMG-20250329-WA0001.jpg")
+        result = await extractor.extract(claim_text=None, image_data=image_data)
+        assert isinstance(result, ExtractedClaim)
+        # TODO: Indicate that this is not a tweet
+        expected_text = "Congratulations go to ECE Professor Raviraj Adve on the publication of his new textbook, Cellular Radio Access Networks, RF Fundamentals and Protocols."
+        # assert expected_text in result.claim_text
+
+    async def test_sample_images_IMG_20250406_WA0001(self, extractor):
+        """Test extraction from IMG-20250406-WA0001.jpg."""
+        image_data = get_sample_image_path("IMG-20250406-WA0001.jpg")
+        result = await extractor.extract(claim_text=None, image_data=image_data)
+        assert isinstance(result, ExtractedClaim)
+        # TODO: Add expected output after manual inspection
+        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250406_WA0001"
+        # assert expected_text in result.claim_text
+
     async def test_sample_images_IMG_20250409_WA0003(self, extractor):
         """Test extraction from IMG-20250409-WA0003.jpg."""
         image_data = get_sample_image_path("IMG-20250409-WA0003.jpg")
@@ -909,6 +841,24 @@ class TestSampleImagesNotTweet:
         assert isinstance(result, ExtractedClaim)
         # TODO: Add expected output after manual inspection
         expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250409_WA0003"
+        # assert expected_text in result.claim_text
+
+    async def test_sample_images_IMG_20250411_WA0001(self, extractor):
+        """Test extraction from IMG-20250411-WA0001.jpg."""
+        image_data = get_sample_image_path("IMG-20250411-WA0001.jpg")
+        result = await extractor.extract(claim_text=None, image_data=image_data)
+        assert isinstance(result, ExtractedClaim)
+        # TODO: Add expected output after manual inspection
+        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250411_WA0001"
+        # assert expected_text in result.claim_text
+
+    async def test_sample_images_IMG_20250423_WA0002(self, extractor):
+        """Test extraction from IMG-20250423-WA0002.jpg."""
+        image_data = get_sample_image_path("IMG-20250423-WA0002.jpg")
+        result = await extractor.extract(claim_text=None, image_data=image_data)
+        assert isinstance(result, ExtractedClaim)
+        # TODO: Add expected output after manual inspection
+        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250423_WA0002"
         # assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20250527_WA0014(self, extractor):
@@ -929,6 +879,15 @@ class TestSampleImagesNotTweet:
         expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250605_WA0003"
         # assert expected_text in result.claim_text
 
+    async def test_sample_images_IMG_20250617_WA0004(self, extractor):
+        """Test extraction from IMG-20250617-WA0004.jpg."""
+        image_data = get_sample_image_path("IMG-20250617-WA0004.jpg")
+        result = await extractor.extract(claim_text=None, image_data=image_data)
+        assert isinstance(result, ExtractedClaim)
+        # TODO: Add expected output after manual inspection
+        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250617_WA0004"
+        # assert expected_text in result.claim_text
+
     async def test_sample_images_IMG_20250729_WA0001(self, extractor):
         """Test extraction from IMG-20250729-WA0001.jpg."""
         image_data = get_sample_image_path("IMG-20250729-WA0001.jpg")
@@ -945,6 +904,15 @@ class TestSampleImagesNotTweet:
         assert isinstance(result, ExtractedClaim)
         # TODO: Add expected output after manual inspection
         expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250921_WA0010"
+        # assert expected_text in result.claim_text
+
+    async def test_sample_images_IMG_20250930_WA0046(self, extractor):
+        """Test extraction from IMG-20250930-WA0046.jpg."""
+        image_data = get_sample_image_path("IMG-20250930-WA0046.jpg")
+        result = await extractor.extract(claim_text=None, image_data=image_data)
+        assert isinstance(result, ExtractedClaim)
+        # TODO: Add expected output after manual inspection
+        expected_text = "PLACEHOLDER_EXPECTED_OUTPUT_IMG_20250930_WA0046"
         # assert expected_text in result.claim_text
 
     async def test_sample_images_IMG_20251005_WA0024(self, extractor):

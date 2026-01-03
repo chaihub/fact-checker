@@ -5,7 +5,7 @@
 ## 🚀 START HERE
 
 ### Current Priority Tasks
-- Manually update image testcases with expected output
+- Create alternate image extractor using multiple questions to AI API.
 
 ---
 
