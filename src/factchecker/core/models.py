@@ -31,6 +31,15 @@ class FactCheckRequest(BaseModel):
         str_strip_whitespace = True
 
 
+class ClaimQuestion(BaseModel):
+    """Granular question extracted from a claim."""
+
+    question_type: Literal["who", "when", "where", "what", "how", "why"]
+    question_text: str
+    related_entity: Optional[str] = None
+    confidence: float
+
+
 class ExtractedClaim(BaseModel):
     """Output from extractors (Image or Text)."""
 
@@ -39,6 +48,7 @@ class ExtractedClaim(BaseModel):
     confidence: float
     raw_input_type: Literal["text_only", "image_only", "both"]
     metadata: dict = {}
+    questions: List[ClaimQuestion] = []
 
 
 class SearchResult(BaseModel):

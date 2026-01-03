@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from factchecker.core.models import (
     FactCheckRequest,
     ExtractedClaim,
+    ClaimQuestion,
     SearchResult,
     VerdictEnum,
     Reference,
@@ -263,6 +264,162 @@ class TestExtractedClaim:
             metadata=metadata,
         )
         assert claim.metadata == metadata
+
+    def test_extracted_claim_default_questions(self):
+        """Test that questions defaults to empty list."""
+        claim = ExtractedClaim(
+            claim_text="test",
+            extracted_from="text",
+            confidence=0.95,
+            raw_input_type="text_only",
+        )
+        assert claim.questions == []
+
+    def test_extracted_claim_with_questions(self):
+        """Test that ExtractedClaim can have questions."""
+        question = ClaimQuestion(
+            question_type="who",
+            question_text="Who made this claim?",
+            confidence=0.85,
+        )
+        claim = ExtractedClaim(
+            claim_text="test",
+            extracted_from="text",
+            confidence=0.95,
+            raw_input_type="text_only",
+            questions=[question],
+        )
+        assert len(claim.questions) == 1
+        assert isinstance(claim.questions[0], ClaimQuestion)
+        assert claim.questions[0].question_type == "who"
+
+    def test_extracted_claim_with_multiple_questions(self):
+        """Test that ExtractedClaim can have multiple questions."""
+        questions = [
+            ClaimQuestion(
+                question_type="who",
+                question_text="Who made this claim?",
+                confidence=0.85,
+            ),
+            ClaimQuestion(
+                question_type="when",
+                question_text="When did this happen?",
+                related_entity="event",
+                confidence=0.75,
+            ),
+        ]
+        claim = ExtractedClaim(
+            claim_text="test",
+            extracted_from="text",
+            confidence=0.95,
+            raw_input_type="text_only",
+            questions=questions,
+        )
+        assert len(claim.questions) == 2
+        assert claim.questions[0].question_type == "who"
+        assert claim.questions[1].question_type == "when"
+
+
+# ============================================================================
+# ClaimQuestion Tests (10 tests)
+# ============================================================================
+
+class TestClaimQuestion:
+    """Tests for ClaimQuestion model."""
+
+    def test_claim_question_missing_question_type(self):
+        """Test that question_type is required."""
+        with pytest.raises(ValidationError, match="question_type"):
+            ClaimQuestion(
+                question_text="Who made this claim?",
+                confidence=0.85,
+            )
+
+    def test_claim_question_missing_question_text(self):
+        """Test that question_text is required."""
+        with pytest.raises(ValidationError, match="question_text"):
+            ClaimQuestion(
+                question_type="who",
+                confidence=0.85,
+            )
+
+    def test_claim_question_missing_confidence(self):
+        """Test that confidence is required."""
+        with pytest.raises(ValidationError, match="confidence"):
+            ClaimQuestion(
+                question_type="who",
+                question_text="Who made this claim?",
+            )
+
+    def test_claim_question_valid_question_types(self):
+        """Test all valid question_type values."""
+        for q_type in ["who", "when", "where", "what", "how", "why"]:
+            question = ClaimQuestion(
+                question_type=q_type,
+                question_text=f"Test {q_type} question",
+                confidence=0.85,
+            )
+            assert question.question_type == q_type
+
+    def test_claim_question_invalid_question_type(self):
+        """Test that invalid question_type value is rejected."""
+        with pytest.raises(ValidationError, match="question_type"):
+            ClaimQuestion(
+                question_type="invalid_type",
+                question_text="Test question",
+                confidence=0.85,
+            )
+
+    def test_claim_question_optional_related_entity(self):
+        """Test that related_entity is optional."""
+        question = ClaimQuestion(
+            question_type="who",
+            question_text="Who made this claim?",
+            confidence=0.85,
+        )
+        assert question.related_entity is None
+
+    def test_claim_question_with_related_entity(self):
+        """Test that related_entity can be provided."""
+        question = ClaimQuestion(
+            question_type="who",
+            question_text="Who made this claim?",
+            related_entity="John Doe",
+            confidence=0.85,
+        )
+        assert question.related_entity == "John Doe"
+
+    def test_claim_question_confidence_boundary_values(self):
+        """Test boundary values for confidence."""
+        for conf_value in [0.0, 0.5, 1.0]:
+            question = ClaimQuestion(
+                question_type="who",
+                question_text="Who made this claim?",
+                confidence=conf_value,
+            )
+            assert question.confidence == conf_value
+
+    def test_claim_question_empty_question_text_fails(self):
+        """Test that empty question_text fails validation."""
+        with pytest.raises(ValidationError):
+            ClaimQuestion(
+                question_type="who",
+                question_text="",
+                confidence=0.85,
+            )
+
+    def test_claim_question_full_creation(self):
+        """Test successful creation of complete ClaimQuestion."""
+        question = ClaimQuestion(
+            question_type="when",
+            question_text="When did this event occur?",
+            related_entity="event",
+            confidence=0.92,
+        )
+        assert question.question_type == "when"
+        assert question.question_text == "When did this event occur?"
+        assert question.related_entity == "event"
+        assert question.confidence == 0.92
 
 
 # ============================================================================
