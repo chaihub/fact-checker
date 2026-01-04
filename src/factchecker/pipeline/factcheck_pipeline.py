@@ -88,18 +88,15 @@ class FactCheckPipeline(IPipeline):
             # Stage 2: Extract claim
             extracted_claim = await self._extract_claim(request)
 
-            # Stage 3: Identify search parameters
-            search_params = await self._build_search_params(extracted_claim)
+            # Stage 3: Search external sources
+            all_results = await self._search_sources(extracted_claim)
 
-            # Stage 4: Search external sources
-            all_results = await self._search_sources(extracted_claim, search_params)
-
-            # Stage 5: Process results
+            # Stage 4: Process results
             response = await self._generate_response(
                 request, extracted_claim, all_results, start_time
             )
 
-            # Stage 6: Cache response
+            # Stage 5: Cache response
             await self._cache_response(response)
 
             logger.info("Fact-check request completed successfully")
@@ -170,21 +167,9 @@ class FactCheckPipeline(IPipeline):
         combined_claim = await self.claim_combiner.combine(text_claim, image_claim)
         return combined_claim
 
-    @log_stage("Search Parameter Building")
-    async def _build_search_params(self, claim: ExtractedClaim) -> dict:
-        """Generate search parameters from extracted claim.
-        
-        Mock implementation returns dummy search parameters for orchestration testing.
-        """
-        return {
-            "query": claim.claim_text,
-            "limit": 5,
-            "sort_by": "relevance",
-        }
-
     @log_stage("External Search")
     async def _search_sources(
-        self, claim: ExtractedClaim, params: dict
+        self, claim: ExtractedClaim
     ) -> List[SearchResult]:
         """Query all enabled searchers concurrently.
         

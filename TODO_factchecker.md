@@ -5,7 +5,9 @@
 ## 🚀 START HERE
 
 ### Current Priority Tasks
-- Create alternate image extractor using multiple questions to AI API.
+- Modify pipeline to eliminate 'Identify search parameters' stage, as it will be combined into the previous one
+- Modify _extract_claim() to use the new flow; drop claim_combiner; return 1 to 3 claims
+- Create alternate image extractor using multiple questions to AI API
 
 ---
 
