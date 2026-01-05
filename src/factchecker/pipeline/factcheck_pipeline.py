@@ -163,7 +163,7 @@ class FactCheckPipeline(IPipeline):
             return self._create_error_claim("No claims extracted from input")
     
     async def _extract_text_claim(self, claim_text: str) -> Optional[ExtractedClaim]:
-        """Extract claim from text input. Returns Output A."""
+        """Extract claim from text input."""
         try:
             return await self.text_extractor.extract(claim_text, None)
         except Exception as e:

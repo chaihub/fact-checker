@@ -24,32 +24,24 @@ class TextExtractor(BaseExtractor):
         self, claim_text: Optional[str], image_data: Optional[bytes]
     ) -> ExtractedClaim:
         """Extract structured claim from text."""
-        if claim_text is None and image_data is None:
+        if claim_text is None:
             raise ValueError(
-                "At least one of claim_text or image_data must be provided"
+                "No text provided."
             )
-
-        # Determine input type
-        if claim_text and image_data:
-            raw_input_type = "both"
-        elif image_data:
-            raw_input_type = "image_only"
-        else:
-            raw_input_type = "text_only"
 
         # Process text if provided
         normalized_text = ""
         validation_metadata: dict = {}
-        original_text = claim_text or ""
+        original_text = claim_text
 
-        if claim_text is not None:
-            # Normalize text
-            normalized_text, was_normalized = self._normalize_text(claim_text)
+        # Normalize text
+        # TODO: Check if this step adds value
+        normalized_text, was_normalized = self._normalize_text(claim_text)
 
-            # Validate and clean text
-            normalized_text, validation_metadata = self._validate_and_clean_text(
-                normalized_text, was_normalized
-            )
+        # Validate and clean text
+        normalized_text, validation_metadata = self._validate_and_clean_text(
+            normalized_text, was_normalized
+        )
 
         # Collect metadata
         metadata = self._collect_metadata(
@@ -65,7 +57,7 @@ class TextExtractor(BaseExtractor):
             claim_text=normalized_text,
             extracted_from="text",
             confidence=1.0 if normalized_text else 0.0,
-            raw_input_type=raw_input_type,
+            raw_input_type="text_only",
             metadata=metadata,
         )
 

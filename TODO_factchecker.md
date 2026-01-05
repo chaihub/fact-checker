@@ -5,9 +5,12 @@
 ## 🚀 START HERE
 
 ### Current Priority Tasks
-- Modify pipeline to eliminate 'Identify search parameters' stage, as it will be combined into the previous one
-- Modify _extract_claim() to use the new flow; drop claim_combiner; return 1 to 3 claims
-- Create alternate image extractor using multiple questions to AI API
+- Implement LLM Configuration System (Phase 0.4, Phase 2.3, Phase 3.3, Phase 4.2, Phase 7.3.1)
+  - Core files: `core/llm_config.py`, `core/llm_provider.py`, `core/llm_helpers.py`
+  - Integrate into TextExtractor, ImageExtractor, SearchQueryBuilder, ResponseGenerator
+  - Use Google Gemini API with configurable models and parameters
+- Create claim extractor using AI API (relies on LLM system)
+- Create alternate image extractor using multiple questions to AI API (relies on LLM system)
 
 ---
 
@@ -45,6 +48,16 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [ ] **0.3.2** Setup code coverage reporting
 - [ ] **0.3.3** Setup pre-commit hooks for linting
 
+### 0.4 LLM Configuration System Setup
+- [ ] **0.4.1** Add LLM provider dependencies to `requirements.txt`
+  - Add `google-generativeai` (for Google Gemini)
+  - Add `httpx` (already present for async HTTP)
+- [ ] **0.4.2** Create `.env` variables for LLM API keys
+  - `GOOGLE_GEMINI_API_KEY` - API key for Google Gemini
+  - `DEFAULT_LLM_PROVIDER` - Provider selection (default: "google-gemini")
+- [ ] **0.4.3** Add LLM configuration to `pyproject.toml` if needed
+  - Tool-specific LLM settings (e.g., default timeouts)
+
 ---
 
 ## Phase 1: Core Models & Logging
@@ -57,12 +70,12 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [x] **1.1.5** Implement `Evidence` model
 - [x] **1.1.6** Implement `Reference` model
 - [x] **1.1.7** Implement `FactCheckResponse` model
-- [ ] **1.1.9** Add `ClaimQuestion` model for granular questions
+- [x] **1.1.9** Add `ClaimQuestion` model for granular questions
   - `question_type`: Literal["who", "when", "where", "what", "how", "why"]
   - `question_text`: str
   - `related_entity`: Optional[str]
   - `confidence`: float
-- [ ] **1.1.10** Update `ExtractedClaim` model with `questions` field
+- [x] **1.1.10** Update `ExtractedClaim` model with `questions` field
   - Add `questions: List[ClaimQuestion] = []` field
   - Update model validation
 - [x] **1.1.8** Add model validation tests
@@ -70,8 +83,8 @@ This document tracks all granular tasks for implementing the FactChecker compone
   - Test optional fields
   - Test enum constraints
   - Test nested model validation
-  - [ ] Test ClaimQuestion model validation
-  - [ ] Test ExtractedClaim with questions field
+  - [x] Test ClaimQuestion model validation
+  - [x] Test ExtractedClaim with questions field
 
 ### 1.2 Logging Implementation
 - [x] **1.2.1** Implement `setup_logging()` function
@@ -189,71 +202,30 @@ This document tracks all granular tasks for implementing the FactChecker compone
    - [x] Test image preprocessing verification
    - [x] Test OCR confidence scoring
 
-### 2.3 OCR Integration (v0.1+)
-- [x] **2.3.1** Research OCR options (pytesseract vs others) - Using pytesseract
-- [x] **2.3.2** Implement OCR in `ImageExtractor.extract()` - Moved to 2.2.8
-- [x] **2.3.3** Add OCR confidence scoring - Moved to 2.2.9
-- [ ] **2.3.4** Test OCR with sample images - Moved to 2.2.5
-- [ ] **2.3.5** Benchmark OCR performance
-- [ ] **2.3.6** Implement OCR preprocessing improvements (v0.1+)
-  - Contrast enhancement
-  - Noise reduction
-  - Advanced image quality improvements
-
-### 2.4 Advanced Text Extraction (v0.1+)
-- [ ] **2.4.1** Implement NLP-based claim segmentation (spaCy)
-- [ ] **2.4.2** Extract key entities and claims
-- [ ] **2.4.3** Implement confidence scoring for extractions
-  - Base confidence on text quality metrics
-  - Length appropriateness (not too short/long)
-  - Character encoding validity
-  - Presence of meaningful content
-- [ ] **2.4.4** Test with various claim formats
-
-### 2.5 ClaimCombiner Implementation
-- [x] **2.5.1** Create `ClaimCombiner` class
-  - [x] Create `src/factchecker/extractors/claim_combiner.py`
-  - [x] Design interface for combining extractor outputs
-  - [x] Implement basic structure with `combine()` method
-  - [x] Add error handling for None inputs
-  - [x] Add logging integration
-  - [x] Export in `__init__.py`
-- [ ] **2.5.2** Implement text merging logic
-  - Combine text from TextExtractor and ImageExtractor (if both available)
-  - Handle text-only combination
-  - Handle image-only combination (OCR text)
-  - Handle hybrid combination (text + OCR)
-  - Prefer higher confidence source if conflicts
-  - Log warnings for conflicts
-- [ ] **2.5.3** Implement rule-based question generation
-  - Extract entities using regex patterns:
-    - Person names for "who" questions
-    - Dates/times for "when" questions
-    - Locations for "where" questions
-    - Main claim content for "what" questions
-  - Generate questions based on detected entities
-  - Assign confidence scores to questions
-  - Handle question generation failures gracefully (return claim without questions)
-- [ ] **2.5.4** Implement confidence score merging
-  - Combine confidence scores from both extractors
-  - Weight by source quality
-  - Handle single-source scenarios
-- [ ] **2.5.5** Enhance metadata in combined claim
-  - Merge metadata from both sources
-  - Track combination method used
-  - Include source information
-- [ ] **2.5.6** Implement error handling
-  - Handle both extractors returning None (return error claim with low confidence)
-  - Handle text merging conflicts (prefer higher confidence, log warning)
-  - Handle question generation failures (return claim without questions, log warning)
-- [ ] **2.5.7** Unit test ClaimCombiner
-  - Test text-only combination
-  - Test image-only combination
-  - Test hybrid combination (text + image)
-  - Test question generation for various claim types
-  - Test confidence score merging
-  - Test edge cases (empty inputs, conflicting data)
-  - Test error handling scenarios
+### 2.3 LLM-Based Claim Extraction
+- [ ] **2.3.1** Implement LLM-based text claim extraction using AI API
+  - Use `claim_extraction_from_text` use case from LLM config
+  - Call Google Gemini API with extracted text
+  - Parse and structure LLM response into ExtractedClaim
+  - Extract claim segments and key assertions
+  - Assign confidence scores based on LLM confidence
+  - Handle LLM API errors gracefully (fallback to text-only extraction)
+- [ ] **2.3.2** Implement LLM-based image claim extraction using multiple questions
+  - Use `claim_extraction_from_image` use case from LLM config
+  - Send OCR'd image text + image metadata to LLM
+  - Generate multiple clarifying questions (who, what, when, where, why)
+  - Extract structured claims from LLM responses
+  - Combine question answers into unified claim
+  - Handle multi-turn LLM conversation if needed
+- [ ] **2.3.3** Test LLM-based extraction
+  - Mock LLM API responses in tests
+  - Test with various claim types and formats
+  - Test error handling for LLM API failures
+  - Test confidence score generation
+- [ ] **2.3.4** Implement LLM response parsing and validation
+  - Validate LLM output structure
+  - Extract claims, questions, and confidence scores
+  - Handle malformed responses gracefully
 
 ---
 
@@ -301,15 +273,22 @@ This document tracks all granular tasks for implementing the FactChecker compone
   - [ ] Test API error handling
 - [ ] **3.2.6** Add BlueSky API configuration
 
-### 3.3 Search Parameter Building
-- [ ] **3.3.1** Create `SearchParameterBuilder` class
-- [ ] **3.3.2** Implement verbatim text extraction strategy
-- [ ] **3.3.3** Implement semantic search strategy
-- [ ] **3.3.4** Implement iterative query expansion (v0.1)
-- [ ] **3.3.5** Unit test parameter building
-  - [ ] Test verbatim extraction
-  - [ ] Test semantic extraction
-  - [ ] Test edge cases
+### 3.3 LLM-Based Search Query Generation
+- [ ] **3.3.1** Create `SearchQueryBuilder` class using LLM
+  - Use `search_query_generation` use case from LLM config
+  - Accept claim text or extracted claim with questions
+  - Call LLM to generate optimized search queries
+  - Generate multiple query variations for redundancy
+  - Return list of SearchQuery objects with priority/confidence
+- [ ] **3.3.2** Implement fallback query generation (non-LLM)
+  - Extract key terms/entities from claim if LLM unavailable
+  - Create simple keyword-based search queries
+  - Use for robustness when LLM fails
+- [ ] **3.3.3** Test LLM-based query generation
+  - Mock LLM API responses
+  - Test with various claim types
+  - Test fallback behavior
+  - Compare LLM-generated vs. fallback queries
 
 ### 3.4 Search Result Aggregation
 - [ ] **3.4.1** Create `SearchAggregator` class
@@ -344,21 +323,27 @@ This document tracks all granular tasks for implementing the FactChecker compone
   - [ ] Add negation handling
   - [ ] Add temporal logic
 
-### 4.2 ResponseGenerator Implementation
+### 4.2 LLM-Based Response Generation
 - [x] **4.2.1** Create `ResponseGenerator` class extending `BaseProcessor`
 - [x] **4.2.2** Add placeholder for response generation
-- [ ] **4.2.3** Implement response formatting
-  - [ ] Generate evidence summary
-  - [ ] Extract and format references
-  - [ ] Generate human-readable explanation
-  - [ ] Format search queries used
-- [ ] **4.2.4** Unit test ResponseGenerator
+- [ ] **4.2.3** Implement LLM-based response formatting
+  - Use `response_generation` use case from LLM config
+  - Send claim + search results to LLM
+  - LLM generates human-readable verdict and explanation
+  - Extract confidence score from LLM response
+  - Generate evidence summary and references
+- [ ] **4.2.4** Implement fallback response generation (non-LLM)
+  - Rule-based verdict determination if LLM unavailable
+  - Simple template-based explanation
+  - Reference extraction from search results
+- [ ] **4.2.5** Unit test ResponseGenerator
   - [x] Test response generation
   - [x] Test response structure
-  - [ ] Test explanation generation
+  - [ ] Test LLM explanation generation
   - [ ] Test evidence formatting
   - [ ] Test reference extraction
-- [ ] **4.2.5** Implement WhatsApp-specific formatting
+  - [ ] Test fallback behavior
+- [ ] **4.2.6** Implement WhatsApp-specific formatting
   - [ ] Format for character limits
   - [ ] Handle markdown to WhatsApp format
 
@@ -546,14 +531,24 @@ This document tracks all granular tasks for implementing the FactChecker compone
   - [ ] Add OCR tests with sample images
   - [ ] Add OCR failure handling tests
   - [ ] Add image preprocessing verification tests
-- [ ] **7.3.3** ClaimCombiner unit tests
-  - [ ] Test text-only combination
-  - [ ] Test image-only combination
-  - [ ] Test hybrid combination (text + image)
-  - [ ] Test question generation for various claim types
-  - [ ] Test confidence score merging
-  - [ ] Test edge cases (empty inputs, conflicting data)
-  - [ ] Test error handling scenarios
+
+### 7.3.1 LLM Configuration Module Tests
+- [ ] **7.3.1.1** Test `llm_config.py`
+  - [ ] Test `get_llm_config(use_case)` retrieval
+  - [ ] Test all predefined use cases are accessible
+  - [ ] Test validation of use case parameters
+  - [ ] Test `list_available_use_cases()` returns complete list
+- [ ] **7.3.1.2** Test `llm_provider.py`
+  - [ ] Test GoogleGeminiProvider initialization
+  - [ ] Test `call(use_case, prompt)` async method
+  - [ ] Test error handling for API failures
+  - [ ] Test configuration parameter passing
+  - [ ] Test retry logic for transient failures
+- [ ] **7.3.1.3** Test `llm_helpers.py`
+  - [ ] Test `list_llm_options()` function
+  - [ ] Test `validate_use_case()` validation
+  - [ ] Test `query_provider_options()` API querying
+  - [ ] Test option parsing and formatting
 
 ### 7.4 Searcher Module Tests
 - [x] **7.4.1** TwitterSearcher unit tests (4 tests created)
@@ -771,30 +766,51 @@ This document tracks all granular tasks for implementing the FactChecker compone
 
 ---
 
-## Phase 14: Version 0.1 Features
+## Phase 14: Version 0.1 Features & LLM System Enhancements
 
-### 14.1 BlueSky Support
-- [ ] **14.1.1** Complete BlueSkySearcher implementation
-- [ ] **14.1.2** Test BlueSky integration
-- [ ] **14.1.3** Add configuration for BlueSky
+### 14.1 LLM Configuration System - Phase 2 (Enhancement)
+- [ ] **14.1.1** YAML config file support
+  - [ ] Create `config/llm_configs.yaml` for runtime configuration
+  - [ ] Implement YAML parser and loader
+  - [ ] Allow environment variable overrides in config
+  - [ ] Support config hot-reload without restart
+- [ ] **14.1.2** Pydantic models for configuration validation
+  - [ ] Define `UseCase` Pydantic model
+  - [ ] Define `ProviderConfig` Pydantic model
+  - [ ] Add schema validation for all configs
+  - [ ] Generate JSON schema from models
+- [ ] **14.1.3** Additional LLM provider support
+  - [ ] Implement `OpenAIProvider`
+  - [ ] Implement `AnthropicProvider`
+  - [ ] Add provider auto-detection and fallback
+  - [ ] Support provider switching without code changes
+- [ ] **14.1.4** Cost tracking and usage monitoring
+  - [ ] Track tokens used per LLM call
+  - [ ] Calculate costs based on provider pricing
+  - [ ] Aggregate usage by use case and time period
+  - [ ] Generate usage reports and cost analysis
+- [ ] **14.1.5** Model capability querying
+  - [ ] Cache live model lists from providers
+  - [ ] Detect deprecated/removed models
+  - [ ] Query parameter ranges and limits for models
+  - [ ] Alert on breaking changes
 
-### 14.2 Iterative Query Expansion
-- [ ] **14.2.1** Implement iterative search strategy
-- [ ] **14.2.2** Implement cost-aware query building
-- [ ] **14.2.3** Test query expansion logic
-- [ ] **14.2.4** Benchmark cost savings
+### 14.2 Advanced Claim Analysis
+- [ ] **14.2.1** Implement semantic similarity scoring
+- [ ] **14.2.2** Implement negation handling
+- [ ] **14.2.3** Implement temporal logic
+- [ ] **14.2.4** Add specialized processors for claim types
 
-### 14.3 Advanced Claim Analysis
-- [ ] **14.3.1** Implement semantic similarity scoring
-- [ ] **14.3.2** Implement negation handling
-- [ ] **14.3.3** Implement temporal logic
-- [ ] **14.3.4** Add specialized processors for claim types
+### 14.3 BlueSky Support
+- [ ] **14.3.1** Complete BlueSkySearcher implementation
+- [ ] **14.3.2** Test BlueSky integration
+- [ ] **14.3.3** Add configuration for BlueSky
 
-### 14.4 OCR Improvements
-- [ ] **14.4.1** Implement OCR preprocessing
-- [ ] **14.4.2** Add OCR confidence scoring
-- [ ] **14.4.3** Test with various image types
-- [ ] **14.4.4** Benchmark OCR performance
+### 14.4 Iterative Query Expansion
+- [ ] **14.4.1** Implement iterative LLM-based search strategy
+- [ ] **14.4.2** Implement cost-aware query building (Phase 1.4)
+- [ ] **14.4.3** Test query expansion logic
+- [ ] **14.4.4** Benchmark cost savings
 
 ---
 
