@@ -17,9 +17,10 @@ from factchecker.core.models import (
     ErrorDetails,
 )
 from factchecker.core.interfaces import IPipeline
-from factchecker.extractors.claim_combiner import ClaimCombiner
 from factchecker.extractors.text_extractor import TextExtractor
 from factchecker.extractors.image_extractor import ImageExtractor
+from factchecker.extractors.image_handler import ImageHandler
+from factchecker.extractors.text_image_extractor import TextImageExtractor
 from factchecker.logging_config import (
     get_logger,
     log_stage,
@@ -56,10 +57,13 @@ class FactCheckPipeline(IPipeline):
         self.cache = cache
         self.searchers = searchers
         self.processors = processors
-        # Extractors dict should contain "text", "image", and optionally "combiner"
+        # Extractors dict should contain "text", "image", "image_handler", and "text_image_extractor"
         self.text_extractor: TextExtractor = extractors.get("text")
         self.image_extractor: ImageExtractor = extractors.get("image")
-        self.claim_combiner: ClaimCombiner = extractors.get("combiner", ClaimCombiner())
+        self.image_handler: ImageHandler = extractors.get("image_handler", ImageHandler())
+        self.text_image_extractor: TextImageExtractor = extractors.get(
+            "text_image_extractor", TextImageExtractor()
+        )
 
     async def check_claim(self, request: FactCheckRequest) -> FactCheckResponse:
         """Execute full fact-checking pipeline."""
@@ -128,44 +132,114 @@ class FactCheckPipeline(IPipeline):
         return await self.cache.get(cache_key)
 
     @log_stage("Claim Extraction")
-    async def _extract_claim(self, request: FactCheckRequest) -> ExtractedClaim:
-        """Extract structured claim from text or image.
+    async def _extract_claim(self, request: FactCheckRequest) -> List[ExtractedClaim]:
+        """Extract structured claim from text and/or image following Page-3 workflow.
         
-        Runs TextExtractor and ImageExtractor in parallel, then combines
-        their results using ClaimCombiner.
+        Workflow:
+        1. If text exists → Extract text claim
+        2. If image exists → Check if text image
+        3. If text image → Check if nested
+        4. Extract claims from respective image texts
+        5. Return all extracted claims in the order: main, quoted, quoted-within-quoted (Note: only the main claim is mandatory, the rest are optional)
         """
-        # Execute extractors in parallel with error handling
-        # Use asyncio.sleep(0) to return None when no input is available
-        results = await asyncio.gather(
-            self.text_extractor.extract(request.claim_text, None)
-            if request.claim_text
-            else asyncio.sleep(0),
-            self.image_extractor.extract(None, request.image_data)
-            if request.image_data
-            else asyncio.sleep(0),
-            return_exceptions=True,
+        claims: List[ExtractedClaim] = []
+        
+        # Step 1: Extract text claim if text input exists
+        if request.claim_text:
+            text_claim = await self._extract_text_claim(request.claim_text)
+            if text_claim:
+                claims.append(text_claim)
+        
+        # Step 2: Process image if present
+        if request.image_data:
+            image_claims = await self._process_image_input(request.image_data)
+            claims.extend(image_claims)
+        
+        # Step 3: Return text claim if available, otherwise return first image claim
+        if claims:
+            return claims
+        else:
+            # Error case: no claims extracted
+            return self._create_error_claim("No claims extracted from input")
+    
+    async def _extract_text_claim(self, claim_text: str) -> Optional[ExtractedClaim]:
+        """Extract claim from text input. Returns Output A."""
+        try:
+            return await self.text_extractor.extract(claim_text, None)
+        except Exception as e:
+            logger.warning(f"TextExtractor failed: {str(e)}", exc_info=True)
+            return None
+    
+    async def _process_image_input(
+        self, image_data: bytes
+    ) -> List[ExtractedClaim]:
+        """Process image input following workflow decisions.
+        
+        Returns list of ExtractedClaim objects from image processing.
+        """
+        claims: List[ExtractedClaim] = []
+        
+        try:
+            # Check if this is a text image
+            is_text_image = await self.image_handler.detect_text_image(image_data)
+            
+            if not is_text_image:
+                # Not a text image - return error as no text detected
+                error_claim = self._create_error_claim(
+                    "Image does not contain readable text"
+                )
+                claims.append(error_claim)
+                return claims
+            
+            # It's a text image - check for nesting
+            has_nested_image = await self.image_handler.detect_nested_image(image_data)
+            
+            if has_nested_image:
+                # Nested image case: separate and extract from both
+                # TODO: Need to decide the strategy to handle this
+                top_image, inside_image = (
+                    await self.image_handler.separate_nested_image(image_data)
+                )
+                
+                # Extract from top image
+                top_claim = await self.text_image_extractor.extract_from_top_image(
+                    top_image
+                )
+                if top_claim:
+                    claims.append(top_claim)  # Output C
+                
+                # Extract from inside image
+                inside_claim = (
+                    await self.text_image_extractor.extract_from_inside_image(
+                        inside_image
+                    )
+                )
+                if inside_claim:
+                    claims.append(inside_claim)  # Output D
+            else:
+                # Simple text image: extract directly
+                image_claim = await self.text_image_extractor.extract_from_text_image(
+                    image_data
+                )
+                if image_claim:
+                    claims.append(image_claim)  # Output B
+        except Exception as e:
+            logger.warning(
+                f"Image processing failed: {str(e)}", exc_info=True
+            )
+        
+        return claims
+    
+    def _create_error_claim(self, error_message: str) -> ExtractedClaim:
+        """Create an error ExtractedClaim when extraction fails."""
+        return ExtractedClaim(
+            claim_text="",
+            extracted_from="hybrid",
+            confidence=0.0,
+            raw_input_type="both",
+            metadata={"error": error_message},
+            questions=[],
         )
-        
-        # Extract results and handle exceptions
-        text_claim = None
-        if isinstance(results[0], Exception):
-            logger.warning(
-                f"TextExtractor failed: {str(results[0])}", exc_info=True
-            )
-        else:
-            text_claim = results[0]
-        
-        image_claim = None
-        if isinstance(results[1], Exception):
-            logger.warning(
-                f"ImageExtractor failed: {str(results[1])}", exc_info=True
-            )
-        else:
-            image_claim = results[1]
-        
-        # Combine results using ClaimCombiner
-        combined_claim = await self.claim_combiner.combine(text_claim, image_claim)
-        return combined_claim
 
     @log_stage("External Search")
     async def _search_sources(
