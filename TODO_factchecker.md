@@ -5,8 +5,7 @@
 ## 🚀 START HERE
 
 ### Current Priority Tasks
-- Implement LLM Configuration System (Phase 0.4, Phase 2.3, Phase 3.3, Phase 4.2, Phase 7.3.1)
-  - Core files: `core/llm_config.py`, `core/llm_provider.py`, `core/llm_helpers.py`
+- Implement LLM Configuration System (Phase 2.3, Phase 3.3, Phase 4.2, Phase 7.3.1)
   - Integrate into TextExtractor, ImageExtractor, SearchQueryBuilder, ResponseGenerator
   - Use Google Gemini API with configurable models and parameters
 - Create claim extractor using AI API (relies on LLM system)
@@ -49,14 +48,18 @@ This document tracks all granular tasks for implementing the FactChecker compone
 - [ ] **0.3.3** Setup pre-commit hooks for linting
 
 ### 0.4 LLM Configuration System Setup
-- [ ] **0.4.1** Add LLM provider dependencies to `requirements.txt`
-  - Add `google-generativeai` (for Google Gemini)
-  - Add `httpx` (already present for async HTTP)
-- [ ] **0.4.2** Create `.env` variables for LLM API keys
-  - `GOOGLE_GEMINI_API_KEY` - API key for Google Gemini
-  - `DEFAULT_LLM_PROVIDER` - Provider selection (default: "google-gemini")
-- [ ] **0.4.3** Add LLM configuration to `pyproject.toml` if needed
-  - Tool-specific LLM settings (e.g., default timeouts)
+- [x] **0.4.1** Add LLM provider dependencies to `requirements.txt`
+  - Add `google-generativeai` (for Google Gemini) ✅
+  - Add `httpx` (already present for async HTTP) ✅
+- [x] **0.4.2** Create `.env` variables for LLM API keys
+  - `GOOGLE_GEMINI_API_KEY` - API key for Google Gemini ✅
+  - `DEFAULT_LLM_PROVIDER` - Provider selection (default: "google-gemini") ✅
+  - `LLM_API_TIMEOUT` - API timeout in seconds ✅
+  - `LLM_MAX_TOKENS` - Maximum tokens per request ✅
+  - `LLM_TEMPERATURE` - Model temperature setting ✅
+- [x] **0.4.3** Add LLM configuration to `pyproject.toml` if needed
+  - Tool-specific LLM settings (e.g., default timeouts) ✅
+  - Use case configurations for claim extraction ✅ (#CR#: But not sure if this was really necessary)
 
 ---
 

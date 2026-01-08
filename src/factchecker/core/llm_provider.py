@@ -58,10 +58,10 @@ class GoogleGeminiProvider(LLMProvider):
 
     def __init__(self) -> None:
         """Initialize Google Gemini provider with API key from environment."""
-        self.api_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+        self.api_key = os.getenv("GEMINI_API_KEY")
         if not self.api_key:
             raise RuntimeError(
-                "GOOGLE_GEMINI_API_KEY environment variable not set. "
+                "GEMINI_API_KEY environment variable not set. "
                 "Please set it before using GoogleGeminiProvider."
             )
 
@@ -152,13 +152,6 @@ class GoogleGeminiProvider(LLMProvider):
             raise RuntimeError(
                 f"LLM call timed out for use case: {use_case}"
             ) from e
-        except self.genai.types.APIError as e:
-            logger.error(
-                "Gemini API error",
-                extra={"use_case": use_case, "error": str(e)},
-                exc_info=True,
-            )
-            raise RuntimeError(f"Gemini API error: {str(e)}") from e
         except Exception as e:
             logger.error(
                 "Unexpected error in LLM call",
@@ -210,9 +203,10 @@ class GoogleGeminiProvider(LLMProvider):
         return {
             "provider": "google-gemini",
             "models": [
-                "gemini-1.5-flash",
+                "gemini-2.5-flash",
+                "gemini-2.0-flash",
                 "gemini-1.5-pro",
-                "gemini-1.0-pro",
+                "gemini-1.5-flash",
             ],
             "temperature_range": {"min": 0.0, "max": 1.0},
             "max_output_tokens_range": {"min": 1, "max": 8000},

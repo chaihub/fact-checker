@@ -13,7 +13,7 @@ from typing import Any
 # Central registry of use case configurations
 USE_CASE_CONFIGS: dict[str, dict[str, Any]] = {
     "claim_extraction_from_text": {
-        "model": "gemini-1.5-flash",
+        "model": "gemini-2.5-flash",
         "provider": "google-gemini",
         "temperature": 0.3,
         "max_output_tokens": 500,
@@ -27,7 +27,7 @@ USE_CASE_CONFIGS: dict[str, dict[str, Any]] = {
         "request_timeout_seconds": 30.0,
     },
     "claim_extraction_from_image": {
-        "model": "gemini-1.5-flash",
+        "model": "gemini-2.5-flash",
         "provider": "google-gemini",
         "temperature": 0.2,
         "max_output_tokens": 1000,
@@ -41,7 +41,7 @@ USE_CASE_CONFIGS: dict[str, dict[str, Any]] = {
         "request_timeout_seconds": 45.0,
     },
     "search_query_generation": {
-        "model": "gemini-1.5-flash",
+        "model": "gemini-2.5-flash",
         "provider": "google-gemini",
         "temperature": 0.1,
         "max_output_tokens": 200,
@@ -55,7 +55,7 @@ USE_CASE_CONFIGS: dict[str, dict[str, Any]] = {
         "request_timeout_seconds": 20.0,
     },
     "result_analysis": {
-        "model": "gemini-1.5-flash",
+        "model": "gemini-2.5-flash",
         "provider": "google-gemini",
         "temperature": 0.5,
         "max_output_tokens": 300,
@@ -69,7 +69,7 @@ USE_CASE_CONFIGS: dict[str, dict[str, Any]] = {
         "request_timeout_seconds": 30.0,
     },
     "response_generation": {
-        "model": "gemini-1.5-flash",
+        "model": "gemini-2.5-flash",
         "provider": "google-gemini",
         "temperature": 0.7,
         "max_output_tokens": 800,

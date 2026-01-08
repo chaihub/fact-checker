@@ -34,6 +34,7 @@ dependencies = [
     "pillow>=10.0.0",
     "tweepy>=4.14.0",
     "python-dotenv>=1.0.0",
+    "google-generativeai>=0.3.0",
 ]
 
 [project.optional-dependencies]
@@ -101,6 +102,7 @@ module = [
     "pytesseract",
     "tweepy",
     "aiohttp",
+    "google.generativeai",
 ]
 ignore_missing_imports = true
 
@@ -144,6 +146,27 @@ exclude_lines = [
 ]
 fail_under = 85
 precision = 2
+
+# LLM Tool Configuration
+[tool.llm]
+default_provider = "google-gemini"
+api_timeout_seconds = 30
+max_tokens = 2048
+temperature = 0.7
+retry_max_attempts = 3
+retry_backoff_seconds = 1
+
+[[tool.llm.use_cases]]
+name = "claim_extraction_from_text"
+description = "Extract structured claims and assertions from user-provided text"
+default_model = "gemini-pro"
+system_prompt = "Extract structured claims and key assertions from the provided text. Return as JSON with fields: claims (list), key_entities (list), confidence (float 0-1)"
+
+[[tool.llm.use_cases]]
+name = "claim_extraction_from_image"
+description = "Extract and understand claims from images with OCR text and metadata"
+default_model = "gemini-pro-vision"
+system_prompt = "Analyze the provided image and extracted text. Generate clarifying questions about who, what, when, where, why. Return as JSON with fields: questions (list), summary (str), confidence (float 0-1)"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -2,7 +2,12 @@
 
 import pytest
 import logging
+from dotenv import load_dotenv
+
 from factchecker.logging_config import RequestIdFilter, request_id_var
+
+# Load environment variables from .env file before any tests run
+load_dotenv()
 
 
 def pytest_configure(config):
