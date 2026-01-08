@@ -49,6 +49,7 @@ class ExtractedClaim(BaseModel):
     raw_input_type: Literal["text_only", "image_only", "both"]
     metadata: dict = {}
     questions: List[ClaimQuestion] = []
+    segments: List[str] = []
 
 
 class SearchResult(BaseModel):

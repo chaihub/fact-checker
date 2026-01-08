@@ -1,13 +1,16 @@
 """Text-based claim extractor."""
 
+import asyncio
+import json
 import re
 import unicodedata
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import chardet
 
 from factchecker.core.interfaces import BaseExtractor
-from factchecker.core.models import ExtractedClaim
+from factchecker.core.llm_provider import GoogleGeminiProvider
+from factchecker.core.models import ClaimQuestion, ExtractedClaim
 from factchecker.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -51,13 +54,30 @@ class TextExtractor(BaseExtractor):
             validation_metadata=validation_metadata,
         )
 
-        # Future: implement NLP-based claim extraction and segmentation (see section 2.4)
-        # Confidence scoring will be implemented in section 2.4
+        # Call LLM to extract and decompose claims into who/what/when/where/how/why
+        questions: list[ClaimQuestion] = []
+        segments: list[str] = []
+        confidence = 0.0  # Default low confidence for fallback
+
+        try:
+            llm_result = await self._extract_with_llm(normalized_text)
+            questions = llm_result["questions"]
+            segments = llm_result["segments"]
+            confidence = llm_result["confidence"]
+        except Exception as e:
+            logger.warning(
+                f"LLM-based claim extraction failed: {e}. Using fallback extraction.",
+                exc_info=True,
+            )
+            # Fallback: use text-only extraction without LLM decomposition
+
         return ExtractedClaim(
             claim_text=normalized_text,
             extracted_from="text",
-            confidence=1.0 if normalized_text else 0.0,
+            confidence=confidence,
             raw_input_type="text_only",
+            questions=questions,
+            segments=segments,
             metadata=metadata,
         )
 
@@ -196,3 +216,86 @@ class TextExtractor(BaseExtractor):
             metadata["encoding"] = "utf-8"
 
         return metadata
+
+    async def _extract_with_llm(self, text: str) -> dict[str, Any]:
+        """
+        Extract and decompose claims using LLM (who/what/when/where/how/why).
+
+        Args:
+            text: Normalized text to extract claims from
+
+        Returns:
+            Dictionary with keys: questions (list[ClaimQuestion]), segments (list[str]), confidence (float)
+
+        Raises:
+            Exception: If LLM call fails or response is invalid
+        """
+        try:
+            provider = GoogleGeminiProvider()
+        except RuntimeError as e:
+            logger.error(f"Failed to initialize LLM provider: {e}")
+            raise
+
+        # Call LLM with the claim_extraction_from_text use case
+        llm_response = await provider.call(
+            use_case="claim_extraction_from_text",
+            prompt=text,
+        )
+
+        # Parse JSON response
+        try:
+            # Handle markdown code blocks (```json...```)
+            response_text = llm_response.strip()
+            if response_text.startswith("```"):
+                response_text = response_text.split("```")[1]
+                if response_text.startswith("json"):
+                    response_text = response_text[4:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+
+            llm_data = json.loads(response_text.strip())
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse LLM response as JSON: {e}")
+            raise ValueError(f"Invalid JSON from LLM: {e}") from e
+
+        # Extract questions from who/what/when/where/how/why elements
+        questions: list[ClaimQuestion] = []
+        element_types = ["who", "what", "when", "where", "how", "why"]
+
+        for element_type in element_types:
+            if element_type not in llm_data:
+                continue
+
+            element = llm_data[element_type]
+            if not isinstance(element, dict):
+                continue
+
+            # Skip if element is marked as unknown
+            if element.get("is_unknown", False):
+                continue
+
+            value = element.get("value", "").strip()
+            if not value:
+                continue
+
+            question = ClaimQuestion(
+                question_type=element_type,  # type: ignore
+                question_text=value,
+                related_entity=element.get("related_entity"),
+                confidence=float(element.get("confidence", 0.5)),
+            )
+            questions.append(question)
+
+        # Extract key assertions
+        segments = llm_data.get("key_assertions", [])
+        if not isinstance(segments, list):
+            segments = []
+
+        # Extract overall confidence
+        confidence = float(llm_data.get("overall_confidence", 0.5))
+
+        return {
+            "questions": questions,
+            "segments": segments,
+            "confidence": confidence,
+        }

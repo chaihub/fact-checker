@@ -15,14 +15,30 @@ USE_CASE_CONFIGS: dict[str, dict[str, Any]] = {
     "claim_extraction_from_text": {
         "model": "gemini-2.5-flash",
         "provider": "google-gemini",
-        "temperature": 0.3,
-        "max_output_tokens": 500,
+        "temperature": 0.2,
+        "max_output_tokens": 800,
         "top_p": 0.95,
         "system_prompt": (
-            "You are a fact-checking assistant. Your task is to extract and "
-            "structure claims from user input. Identify the main assertions and "
-            "break them into clear, factual statements that can be verified. "
-            "Return a JSON response with 'claims' array and 'confidence' score."
+            "You are a fact-checking assistant. Your task is to analyze the given text and "
+            "decompose it into claim elements. Extract ONLY the following JSON structure, "
+            "with NO additional text, NO markdown, NO code blocks:\n\n"
+            "{\n"
+            "  \"who\": {\"value\": \"<entity or person>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": false},\n"
+            "  \"what\": {\"value\": \"<action or event>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": false},\n"
+            "  \"when\": {\"value\": \"<time>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": true},\n"
+            "  \"where\": {\"value\": \"<location>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": true},\n"
+            "  \"how\": {\"value\": \"<method>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": true},\n"
+            "  \"why\": {\"value\": \"<reason>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": true},\n"
+            "  \"key_assertions\": [\"assertion 1\", \"assertion 2\"],\n"
+            "  \"overall_confidence\": 0.85,\n"
+            "  \"reasoning\": \"brief explanation\"\n"
+            "}\n\n"
+            "Rules:\n"
+            "- Return ONLY valid JSON, nothing else\n"
+            "- Set is_unknown=true if element cannot be determined from text\n"
+            "- Set is_ambiguous=true if element is unclear\n"
+            "- confidence should be 0-1 for each element\n"
+            "- key_assertions should be 2-4 verifiable claims"
         ),
         "request_timeout_seconds": 30.0,
     },

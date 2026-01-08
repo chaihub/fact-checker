@@ -1,13 +1,69 @@
 """Tests for TextExtractor."""
 
+import json
+import os
+from unittest.mock import AsyncMock, patch
+
 import pytest
+
 from factchecker.extractors.text_extractor import TextExtractor
 from factchecker.core.models import ExtractedClaim
+
+# Check if API key is available for integration tests
+HAS_GEMINI_API_KEY = bool(os.getenv("GEMINI_API_KEY"))
 
 
 @pytest.fixture
 def extractor():
     return TextExtractor()
+
+
+@pytest.fixture
+def mock_llm_response():
+    """Mock LLM response for claim decomposition."""
+    return json.dumps(
+        {
+            "who": {
+                "value": "the sky",
+                "confidence": 0.9,
+                "is_ambiguous": False,
+                "is_unknown": False,
+            },
+            "what": {
+                "value": "is blue",
+                "confidence": 0.95,
+                "is_ambiguous": False,
+                "is_unknown": False,
+            },
+            "when": {
+                "value": "unknown",
+                "confidence": 0.0,
+                "is_ambiguous": False,
+                "is_unknown": True,
+            },
+            "where": {
+                "value": "unknown",
+                "confidence": 0.0,
+                "is_ambiguous": False,
+                "is_unknown": True,
+            },
+            "how": {
+                "value": "unknown",
+                "confidence": 0.0,
+                "is_ambiguous": False,
+                "is_unknown": True,
+            },
+            "why": {
+                "value": "unknown",
+                "confidence": 0.0,
+                "is_ambiguous": False,
+                "is_unknown": True,
+            },
+            "key_assertions": ["The sky is blue"],
+            "overall_confidence": 0.85,
+            "reasoning": "Simple factual claim about sky color",
+        }
+    )
 
 
 @pytest.fixture
@@ -30,14 +86,22 @@ def whitespace_only_text():
 
 # Basic extraction tests
 @pytest.mark.asyncio
-async def test_text_extraction_basic(extractor):
+async def test_text_extraction_basic(extractor, mock_llm_response):
     """Test basic text extraction."""
-    result = await extractor.extract(claim_text="The sky is blue", image_data=None)
-    assert isinstance(result, ExtractedClaim)
-    assert result.claim_text == "The sky is blue"
-    assert result.extracted_from == "text"
-    assert result.raw_input_type == "text_only"
-    assert 0 <= result.confidence <= 1
+    with patch(
+        "factchecker.extractors.text_extractor.GoogleGeminiProvider"
+    ) as MockProvider:
+        mock_provider = AsyncMock()
+        mock_provider.call = AsyncMock(return_value=mock_llm_response)
+        MockProvider.return_value = mock_provider
+
+        result = await extractor.extract(claim_text="The sky is blue", image_data=None)
+        assert isinstance(result, ExtractedClaim)
+        assert result.claim_text == "The sky is blue"
+        assert result.extracted_from == "text"
+        assert result.raw_input_type == "text_only"
+        assert 0 <= result.confidence <= 1
+        assert len(result.questions) > 0  # Should have extracted questions
 
 
 @pytest.mark.asyncio
@@ -48,31 +112,45 @@ async def test_text_extraction_requires_input(extractor):
 
 
 @pytest.mark.asyncio
-async def test_hybrid_extraction(extractor):
+async def test_hybrid_extraction(extractor, mock_llm_response):
     """Test extraction from both text and image."""
-    result = await extractor.extract(
-        claim_text="Verify this", image_data=b"mock_image_data"
-    )
-    assert result.raw_input_type == "both"
-    assert result.metadata["has_image"] is True
+    with patch(
+        "factchecker.extractors.text_extractor.GoogleGeminiProvider"
+    ) as MockProvider:
+        mock_provider = AsyncMock()
+        mock_provider.call = AsyncMock(return_value=mock_llm_response)
+        MockProvider.return_value = mock_provider
+
+        result = await extractor.extract(
+            claim_text="Verify this", image_data=b"mock_image_data"
+        )
+        assert result.raw_input_type == "text_only"  # TextExtractor only handles text
+        assert result.metadata["has_image"] is True
 
 
 @pytest.mark.asyncio
 async def test_image_only_extraction(extractor):
     """Test extraction from image only."""
-    result = await extractor.extract(claim_text=None, image_data=b"mock_image_data")
-    assert result.raw_input_type == "image_only"
-    assert result.metadata["has_image"] is True
+    # TextExtractor currently requires text input
+    with pytest.raises(ValueError, match="No text provided"):
+        await extractor.extract(claim_text=None, image_data=b"mock_image_data")
 
 
 @pytest.mark.asyncio
-async def test_extraction_metadata(extractor):
+async def test_extraction_metadata(extractor, mock_llm_response):
     """Test that metadata is populated."""
-    result = await extractor.extract(
-        claim_text="Test claim with length", image_data=None
-    )
-    assert "text_length" in result.metadata
-    assert result.metadata["text_length"] > 0
+    with patch(
+        "factchecker.extractors.text_extractor.GoogleGeminiProvider"
+    ) as MockProvider:
+        mock_provider = AsyncMock()
+        mock_provider.call = AsyncMock(return_value=mock_llm_response)
+        MockProvider.return_value = mock_provider
+
+        result = await extractor.extract(
+            claim_text="Test claim with length", image_data=None
+        )
+        assert "text_length" in result.metadata
+        assert result.metadata["text_length"] > 0
 
 
 # Edge case tests
@@ -304,3 +382,122 @@ async def test_truncation_metadata(extractor, long_text):
     result = await extractor.extract(claim_text=long_text, image_data=None)
     assert result.metadata["truncated"] is True
     assert result.metadata["original_text_length"] > result.metadata["text_length"]
+
+
+# Integration tests with real LLM API
+@pytest.mark.skipif(
+    not HAS_GEMINI_API_KEY, reason="GEMINI_API_KEY not set in environment"
+)
+@pytest.mark.integration
+class TestTextExtractorWithRealLLM:
+    """Integration tests using real Google Gemini API for claim decomposition."""
+
+    @pytest.mark.asyncio
+    async def test_extract_pmc_ai_training_with_real_llm(self):
+        """
+        Integration test: Extract and decompose PMC AI training claim.
+
+        Tests extraction of a straightforward factual claim about:
+        - PMC initiating AI skill development training
+        - Timing: next week
+        - Location: SP College
+        """
+        extractor = TextExtractor()
+        claim_text = (
+            "The Pune Municipal Corporation (PMC) has initiated Artificial "
+            "Intelligence (AI) skill development training for its senior officials "
+            "next week. It will be held at SP College."
+        )
+
+        try:
+            result = await extractor.extract(claim_text=claim_text, image_data=None)
+        except RuntimeError as e:
+            if "quota" in str(e).lower() or "rate" in str(e).lower():
+                pytest.skip(f"Rate limited: {e}")
+            raise
+
+        # Verify basic result structure
+        assert isinstance(result, ExtractedClaim)
+        assert result.claim_text == claim_text
+        assert result.extracted_from == "text"
+        assert 0 <= result.confidence <= 1
+
+        # Verify claim decomposition (who/what/when/where)
+        assert len(result.questions) > 0, "Should extract at least one claim element"
+
+        # Verify we have questions (should extract who, what, where, when)
+        question_types = {q.question_type for q in result.questions}
+        assert (
+            "who" in question_types or "what" in question_types
+        ), "Should extract who or what elements"
+
+        # Verify key assertions were extracted
+        assert (
+            len(result.segments) > 0
+        ), "Should extract key assertions from the claim"
+
+        # Verify confidence is reasonable (not fallback low score)
+        assert result.confidence > 0.4, "Should have decent confidence for clear claim"
+
+        print(f"\n✓ PMC AI Training Claim Extracted:")
+        print(f"  - Questions: {len(result.questions)}")
+        print(f"  - Assertions: {len(result.segments)}")
+        print(f"  - Confidence: {result.confidence:.2f}")
+        for q in result.questions:
+            print(f"    - {q.question_type}: {q.question_text}")
+
+    @pytest.mark.asyncio
+    async def test_extract_affinity_fund_profit_claim_with_real_llm(self):
+        """
+        Integration test: Extract and decompose Affinity fund complex claim.
+
+        Tests extraction of a multi-part question/claim about:
+        - Affinity fund
+        - Control: Jared Kushner
+        - Specific profit amount: $5.7 billion
+        - Specific date: April 3
+        - Action: transfer outside country
+        """
+        extractor = TextExtractor()
+        claim_text = (
+            "Did the Affinity fund, controlled by Jared Kushner, make a "
+            "$5.7 billion profit on April 3 and transfer the profits outside "
+            "the country?"
+        )
+
+        try:
+            result = await extractor.extract(claim_text=claim_text, image_data=None)
+        except RuntimeError as e:
+            if "quota" in str(e).lower() or "rate" in str(e).lower():
+                pytest.skip(f"Rate limited: {e}")
+            raise
+
+        # Verify basic result structure
+        assert isinstance(result, ExtractedClaim)
+        assert result.claim_text == claim_text
+        assert result.extracted_from == "text"
+        assert 0 <= result.confidence <= 1
+
+        # Verify claim decomposition
+        assert len(result.questions) > 0, "Should extract claim elements from complex question"
+
+        # For a complex multi-part claim, should extract multiple elements
+        assert (
+            len(result.questions) >= 2
+        ), "Should extract multiple elements from multi-part claim"
+
+        # Verify question types (should have who, what, when, where)
+        question_types = {q.question_type for q in result.questions}
+        print(f"\n✓ Affinity Fund Claim Decomposed:")
+        print(f"  - Question types found: {sorted(question_types)}")
+        print(f"  - Total elements: {len(result.questions)}")
+        print(f"  - Assertions: {len(result.segments)}")
+        print(f"  - Confidence: {result.confidence:.2f}")
+
+        for q in result.questions:
+            print(f"    - {q.question_type}: {q.question_text} (conf: {q.confidence:.2f})")
+
+        # Verify assertions were extracted
+        assert (
+            len(result.segments) > 0
+        ), "Should extract verifiable assertions from claim"
