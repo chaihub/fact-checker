@@ -21,6 +21,9 @@ def list_llm_options(provider: str = "google-gemini") -> dict[str, Any]:
     """
     List available LLM options and capabilities for a provider.
 
+    Google Gemini model capabilities: https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-image
+    Google Gemini model pricing & limits: https://ai.google.dev/gemini-api/docs/pricing
+
     Args:
         provider: Provider name (default: "google-gemini")
 

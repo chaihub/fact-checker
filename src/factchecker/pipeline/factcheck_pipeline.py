@@ -89,15 +89,15 @@ class FactCheckPipeline(IPipeline):
                 ).total_seconds() * 1000
                 return cached
 
-            # Stage 2: Extract claim
-            extracted_claim = await self._extract_claim(request)
+            # Stage 2: Extract claims
+            extracted_claims = await self._extract_claims(request)
 
             # Stage 3: Search external sources
-            all_results = await self._search_sources(extracted_claim)
+            all_results = await self._verify_claims(extracted_claims)
 
             # Stage 4: Process results
             response = await self._generate_response(
-                request, extracted_claim, all_results, start_time
+                request, extracted_claims, all_results, start_time
             )
 
             # Stage 5: Cache response
@@ -132,7 +132,7 @@ class FactCheckPipeline(IPipeline):
         return await self.cache.get(cache_key)
 
     @log_stage("Claim Extraction")
-    async def _extract_claim(self, request: FactCheckRequest) -> List[ExtractedClaim]:
+    async def _extract_claims(self, request: FactCheckRequest) -> List[ExtractedClaim]:
         """Extract structured claim from text and/or image following Page-3 workflow.
         
         Workflow:
@@ -242,8 +242,8 @@ class FactCheckPipeline(IPipeline):
         )
 
     @log_stage("External Search")
-    async def _search_sources(
-        self, claim: ExtractedClaim
+    async def _verify_claims(
+        self, claims: List[ExtractedClaim]
     ) -> List[SearchResult]:
         """Query all enabled searchers concurrently.
         

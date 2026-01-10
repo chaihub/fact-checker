@@ -206,7 +206,7 @@ This document tracks all granular tasks for implementing the FactChecker compone
    - [x] Test OCR confidence scoring
 
 ### 2.3 LLM-Based Claim Extraction
-- [ ] **2.3.1** Implement LLM-based text claim extraction using AI API
+- [x] **2.3.1** Implement LLM-based text claim extraction using AI API
   - Use `claim_extraction_from_text` use case from LLM config
   - Call Google Gemini API with extracted text
   - Parse and structure LLM response into ExtractedClaim
