@@ -26,5 +26,5 @@ class BlueSkySearcher(BaseSearcher):
 
     @property
     def platform_name(self) -> str:
-        """Return platform identifier."""
+        """Return external source identifier."""
         return "bluesky"

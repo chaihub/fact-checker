@@ -252,7 +252,7 @@ class FactCheckPipeline(IPipeline):
         # Generate mock search results
         mock_results = [
             SearchResult(
-                platform="twitter",
+                external_source="twitter",
                 content="Mock tweet about the claim",
                 author="Mock User 1",
                 url="https://twitter.com/mock/1",
@@ -260,7 +260,7 @@ class FactCheckPipeline(IPipeline):
                 engagement={"likes": 10, "retweets": 2},
             ),
             SearchResult(
-                platform="twitter",
+                external_source="twitter",
                 content="Another mock tweet with different perspective",
                 author="Mock User 2",
                 url="https://twitter.com/mock/2",
@@ -268,7 +268,7 @@ class FactCheckPipeline(IPipeline):
                 engagement={"likes": 25, "retweets": 5},
             ),
             SearchResult(
-                platform="news",
+                external_source="news",
                 content="Mock news article related to the claim",
                 author="Mock News Source",
                 url="https://news.mock/article",
@@ -305,7 +305,7 @@ class FactCheckPipeline(IPipeline):
             title="Mock Source",
             url="https://mock.source/article",
             snippet="This is a mock reference snippet",
-            platform="mock_platform",
+            external_source="news",
         )
         
         # Create response with proper typing

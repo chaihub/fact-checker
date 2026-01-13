@@ -5,6 +5,12 @@ from typing import List, Optional
 from .models import ExtractedClaim, SearchResult, FactCheckResponse
 
 
+class SourceNotFoundError(Exception):
+    """Raised when a requested external source is not found."""
+
+    pass
+
+
 class BaseExtractor(ABC):
     """Abstract base for text and image extractors."""
 

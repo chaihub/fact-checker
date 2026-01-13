@@ -1,4 +1,4 @@
-"""Twitter API searcher."""
+"""Government/Official sources searcher."""
 
 from typing import List
 from datetime import datetime
@@ -9,22 +9,22 @@ from factchecker.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-class TwitterSearcher(BaseSearcher):
-    """Searches Twitter for relevant posts."""
+class GovernmentSearcher(BaseSearcher):
+    """Searches government and official sources for relevant information."""
 
     def __init__(self, api_key: str = None):
         self.api_key = api_key
-        # TODO: Initialize Twitter API client
+        # TODO: Initialize government data source client (data.gov, official APIs, etc.)
 
     async def search(self, claim: str, query_params: dict) -> List[SearchResult]:
-        """Search Twitter for results."""
-        logger.info(f"Searching Twitter for claim: {claim[:50]}...")
+        """Search government sources for results."""
+        logger.info(f"Searching government sources for claim: {claim[:50]}...")
 
-        # TODO: Implement actual Twitter API calls
+        # TODO: Implement actual government source API calls
         # For now, return empty list
         return []
 
     @property
     def platform_name(self) -> str:
         """Return external source identifier."""
-        return "twitter"
+        return "gov"

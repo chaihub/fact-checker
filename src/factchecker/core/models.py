@@ -55,7 +55,7 @@ class ExtractedClaim(BaseModel):
 class SearchResult(BaseModel):
     """Individual result from a searcher."""
 
-    platform: str
+    external_source: str
     content: str
     author: str
     url: str
@@ -92,7 +92,7 @@ class Reference(BaseModel):
     title: str
     url: str
     snippet: str
-    platform: str
+    external_source: str
 
 
 class Evidence(BaseModel):
