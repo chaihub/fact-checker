@@ -15,8 +15,10 @@ from factchecker.core.models import (
     Reference,
     VerdictEnum,
     ErrorDetails,
+    ClaimQuestion,
 )
 from factchecker.core.interfaces import IPipeline
+from factchecker.core.sources_config import EXTERNAL_SOURCES, get_searcher
 from factchecker.extractors.text_extractor import TextExtractor
 from factchecker.extractors.image_extractor import ImageExtractor
 from factchecker.extractors.image_handler import ImageHandler
@@ -241,42 +243,160 @@ class FactCheckPipeline(IPipeline):
             questions=[],
         )
 
-    @log_stage("External Search")
+    @log_stage("Claim Verification")
     async def _verify_claims(
         self, claims: List[ExtractedClaim]
     ) -> List[SearchResult]:
-        """Query all enabled searchers concurrently.
-        
-        Mock implementation returns hardcoded SearchResult objects for orchestration testing.
+        """Verify each claim following Page-4 workflow.
+
+        For each ExtractedClaim:
+        1. Check if 'who' and 'what' answers are present
+        2. If 'where' answer exists, reorder sources
+        3. Search each source using 'who' and 'what' answers until match found
+        4. Record confidence based on search results
         """
-        # Generate mock search results
-        mock_results = [
-            SearchResult(
-                external_source="twitter",
-                content="Mock tweet about the claim",
-                author="Mock User 1",
-                url="https://twitter.com/mock/1",
-                timestamp=datetime.now(),
-                engagement={"likes": 10, "retweets": 2},
-            ),
-            SearchResult(
-                external_source="twitter",
-                content="Another mock tweet with different perspective",
-                author="Mock User 2",
-                url="https://twitter.com/mock/2",
-                timestamp=datetime.now(),
-                engagement={"likes": 25, "retweets": 5},
-            ),
-            SearchResult(
-                external_source="news",
-                content="Mock news article related to the claim",
-                author="Mock News Source",
-                url="https://news.mock/article",
-                timestamp=datetime.now(),
-                engagement={"views": 1000},
-            ),
-        ]
-        return mock_results
+        all_search_results: List[SearchResult] = []
+
+        # Step 0: Determine default source order from configured sequence numbers
+        source_order = sorted(
+            EXTERNAL_SOURCES.keys(),
+            key=lambda key: EXTERNAL_SOURCES[key].sequence,
+        )
+
+        for claim in claims:
+            # Step 1: Check if both 'who' and 'what' answers are present
+            who_a: Optional[ClaimQuestion] = next(
+                (q for q in claim.questions if q.question_type == "who"),
+                None,
+            )
+            what_a: Optional[ClaimQuestion] = next(
+                (q for q in claim.questions if q.question_type == "what"),
+                None,
+            )
+
+            if not who_a or not what_a:
+                # No structured who/what → cannot verify; record no confidence
+                self._record_no_confidence(claim)
+                continue
+
+            # Step 2: Get 'where' answer if present
+            where_a: Optional[ClaimQuestion] = next(
+                (q for q in claim.questions if q.question_type == "where"),
+                None,
+            )
+
+            # Step 3: Determine source order (reorder if 'where' matches a source)
+            claim_source_order = list(source_order)
+            if where_a and where_a.answer_text:
+                where_answer_lower = where_a.answer_text.lower()
+                for platform in list(claim_source_order):
+                    config = EXTERNAL_SOURCES[platform]
+                    if platform.lower() == where_answer_lower:
+                        claim_source_order.remove(platform)
+                        claim_source_order.insert(0, platform)
+                        break
+
+            # Step 4: Build search query and params
+            # TODO: Revisit if search query is to be formed here or within the search function
+            search_query = f"{who_a.answer_text} {what_a.answer_text}"
+            query_params: dict[str, str] = {
+                "who": who_a.answer_text,
+                "what": what_a.answer_text,
+            }
+            if where_a and where_a.answer_text:
+                query_params["where"] = where_a.answer_text
+
+            # Step 5: Search each source until match found (match logic TBD)
+            match_found = False
+            claim_results: List[SearchResult] = []
+
+            for platform in claim_source_order:
+                try:
+                    searcher = get_searcher(platform)
+                    results = await searcher.search(search_query, query_params)
+                    claim_results.extend(results)
+
+                    # TODO: Implement real match-detection logic
+                    # For now, keep match_found as False so confidence logic
+                    # will treat this as "no decisive match".
+                    match_found = False
+
+                    if match_found:
+                        break
+                except Exception as exc:
+                    logger.warning(
+                        "Search failed for platform '%s': %s",
+                        platform,
+                        str(exc),
+                        exc_info=True,
+                    )
+                    continue
+
+            # Step 6: Record confidence based on whether a match was found
+            self._record_confidence_from_match(claim, claim_results, match_found)
+
+            # Collect all results
+            all_search_results.extend(claim_results)
+
+        return all_search_results
+
+    def _record_no_confidence(self, claim: ExtractedClaim) -> None:
+        """Record no confidence in the claim and all its component questions.
+
+        Used when the pipeline cannot verify the claim (e.g., missing who/what
+        or no decisive match in any external source).
+        """
+        claim.confidence = 0.0
+        #for question in claim.questions:
+        #    question.confidence = 0.0
+
+        metadata = dict(claim.metadata) if claim.metadata is not None else {}
+        metadata["verification_status"] = "no_evidence"
+        claim.metadata = metadata
+
+    def _record_confidence_from_match(
+        self,
+        claim: ExtractedClaim,
+        search_results: List[SearchResult],
+        match_found: bool,
+    ) -> None:
+        """Record confidence values on the claim based on search results.
+
+        TODO: This is a first-pass implementation; detailed scoring will be refined
+        later. For now:
+
+        - If no match was found (or there are no results), treat as no evidence.
+        - If a match was found, boost confidence on who/what/where components,
+          and assign moderate confidence to other components.
+        """
+        if not match_found or not search_results:
+            self._record_no_confidence(claim)
+            return
+
+        # TODO: Check if boosting is needed
+        # Boost key components when we believe a match exists.
+        has_questions = bool(claim.questions)
+        for question in claim.questions:
+            if question.question_type in ("who", "what", "where"):
+                question.confidence = 1.0
+            else:
+                # Non-core components get a moderate default; this will be
+                # replaced later with result-driven scoring.
+                if question.confidence < 0.5:
+                    question.confidence = 0.5
+
+        if has_questions:
+            claim.confidence = sum(
+                q.confidence for q in claim.questions
+            ) / len(claim.questions)
+        else:
+            # Fallback if no structured questions exist
+            claim.confidence = 1.0
+
+        metadata = dict(claim.metadata) if claim.metadata is not None else {}
+        metadata["verification_status"] = "matched"
+        metadata["result_count"] = len(search_results)
+        claim.metadata = metadata
 
     @log_stage("Response Generation")
     async def _generate_response(

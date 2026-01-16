@@ -19,8 +19,13 @@ USE_CASE_CONFIGS: dict[str, dict[str, Any]] = {
         "max_output_tokens": 800,
         "top_p": 0.95,
         "system_prompt": (
-            "You are a fact-checking assistant. Your task is to analyze the given text and "
-            "decompose it into claim elements. Extract ONLY the following JSON structure, "
+            "You are a contract analyst with English language expertise, skilled at text "
+            "analysis and interpretation and extraction of meaning. Your task is to analyze "
+            " the given text and decompose it into claim elements that accurately reflect "
+            "the text content. Do not concern yourself with the correctness of the claims. "
+            "Do not refer to any sources except this text. The 'platform' claim captures "
+            "the platform where the claim was made, e.g. Twitter, news report, website, etc. "
+            "Extract ONLY the following JSON structure, "
             "with NO additional text, NO markdown, NO code blocks:\n\n"
             "{\n"
             "  \"who\": {\"value\": \"<entity or person>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": false},\n"
@@ -29,14 +34,15 @@ USE_CASE_CONFIGS: dict[str, dict[str, Any]] = {
             "  \"where\": {\"value\": \"<location>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": true},\n"
             "  \"how\": {\"value\": \"<method>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": true},\n"
             "  \"why\": {\"value\": \"<reason>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": true},\n"
+            "  \"platform\": {\"value\": \"<platform>\", \"confidence\": 0.9, \"is_ambiguous\": false, \"is_unknown\": true},\n"
             "  \"key_assertions\": [\"assertion 1\", \"assertion 2\"],\n"
-            "  \"overall_confidence\": 0.85,\n"
+            "  \"overall_confidence\": 0.8,\n"
             "  \"reasoning\": \"brief explanation\"\n"
             "}\n\n"
             "Rules:\n"
             "- Return ONLY valid JSON, nothing else\n"
-            "- Set is_unknown=true if element cannot be determined from text\n"
-            "- Set is_ambiguous=true if element is unclear\n"
+            "- Set is_unknown=true if element is missing from text\n"
+            "- Set is_ambiguous=true if element is unclear or has multiple common meanings\n"
             "- confidence should be 0-1 for each element\n"
             "- key_assertions should be 2-4 verifiable claims"
         ),
@@ -51,7 +57,7 @@ USE_CASE_CONFIGS: dict[str, dict[str, Any]] = {
         "system_prompt": (
             "You are a fact-checking assistant. Your task is to extract and "
             "structure claims from OCR'd image text. Use multiple questions "
-            "(who, what, when, where, why) to deeply understand the content. "
+            "(who, what, when, where, why, platform) to deeply understand the content. "
             "Return a JSON response with structured claims and confidence scores."
         ),
         "request_timeout_seconds": 45.0,

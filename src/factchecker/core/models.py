@@ -34,10 +34,10 @@ class FactCheckRequest(BaseModel):
 class ClaimQuestion(BaseModel):
     """Granular question extracted from a claim."""
 
-    question_type: Literal["who", "when", "where", "what", "how", "why"]
-    question_text: str
+    question_type: Literal["who", "when", "where", "what", "how", "why", "platform"]
+    answer_text: str
     related_entity: Optional[str] = None
-    confidence: float
+    confidence: float   # 0 = No evidence; 0.5 = some evidence with ambiguity; 1 = good evidence
 
 
 class ExtractedClaim(BaseModel):
@@ -45,7 +45,9 @@ class ExtractedClaim(BaseModel):
 
     claim_text: str
     extracted_from: Literal["image", "text", "hybrid"]
-    confidence: float
+    confidence: float   # 0 = mismatch in one or both of 'who' and 'what';
+                        # 0.5 = both 'who' and 'what' match but mismatch in at least one other claim;
+                        # 1 = all claims match
     raw_input_type: Literal["text_only", "image_only", "both"]
     metadata: dict = {}
     questions: List[ClaimQuestion] = []

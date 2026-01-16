@@ -404,8 +404,8 @@ class TestTextExtractorWithRealLLM:
         """
         extractor = TextExtractor()
         claim_text = (
-            "The Pune Municipal Corporation (PMC) has initiated Artificial "
-            "Intelligence (AI) skill development training for its senior officials "
+            "The Indian Express reports that the Pune Municipal Corporation (PMC) has initiated "
+            "Artificial Intelligence (AI) skill development training for its senior officials "
             "next week. It will be held at SP College."
         )
 
@@ -444,7 +444,22 @@ class TestTextExtractorWithRealLLM:
         print(f"  - Assertions: {len(result.segments)}")
         print(f"  - Confidence: {result.confidence:.2f}")
         for q in result.questions:
-            print(f"    - {q.question_type}: {q.question_text}")
+            print(f"    - {q.question_type}: {q.answer_text}")
+        for s in result.segments:
+            print(f"    - {s}")
+#        Output:
+#        ✓ PMC AI Training Claim Extracted:
+#          - Questions: 4
+#          - Assertions: 4
+#          - Confidence: 0.95
+#            - who: The Pune Municipal Corporation (PMC)
+#            - what: initiated Artificial Intelligence (AI) skill development training for its senior officials
+#            - when: next week
+#            - where: SP College
+#            - The Pune Municipal Corporation (PMC) has initiated AI skill development training.
+#            - The training is intended for PMC's senior officials.
+#            - The training will be held next week.
+#            - The training will take place at SP College.
 
     @pytest.mark.asyncio
     async def test_extract_affinity_fund_profit_claim_with_real_llm(self):
@@ -495,9 +510,27 @@ class TestTextExtractorWithRealLLM:
         print(f"  - Confidence: {result.confidence:.2f}")
 
         for q in result.questions:
-            print(f"    - {q.question_type}: {q.question_text} (conf: {q.confidence:.2f})")
+            print(f"    - {q.question_type}: {q.answer_text} (conf: {q.confidence:.2f})")
+        for s in result.segments:
+            print(f"    - {s}")
 
         # Verify assertions were extracted
         assert (
             len(result.segments) > 0
         ), "Should extract verifiable assertions from claim"
+
+#       # Output:
+#        ✓ Affinity Fund Claim Decomposed:
+#         - Question types found: ['what', 'when', 'where', 'who']
+#         - Total elements: 4
+#         - Assertions: 4
+#         - Confidence: 0.90
+#           - who: the Affinity fund, controlled by Jared Kushner (conf: 0.95)
+#           - what: make a $5.7 billion profit and transfer the profits outside the country (conf: 0.95)
+#           - when: April 3 (conf: 0.95)
+#           - where: outside the country (conf: 0.90)
+#           - The Affinity fund is controlled by Jared Kushner.
+#           - The Affinity fund made a $5.7 billion profit.
+#           - The profit was made on April 3.
+#           - The profits were transferred outside the country.
+#

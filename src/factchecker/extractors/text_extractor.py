@@ -244,6 +244,9 @@ class TextExtractor(BaseExtractor):
 
         # Parse JSON response
         try:
+            # Log the raw response for debugging
+            logger.debug(f"Raw LLM response: {llm_response}")
+
             # Handle markdown code blocks (```json...```)
             response_text = llm_response.strip()
             if response_text.startswith("```"):
@@ -258,9 +261,9 @@ class TextExtractor(BaseExtractor):
             logger.error(f"Failed to parse LLM response as JSON: {e}")
             raise ValueError(f"Invalid JSON from LLM: {e}") from e
 
-        # Extract questions from who/what/when/where/how/why elements
+        # Extract questions from who/what/when/where/how/why/platform elements
         questions: list[ClaimQuestion] = []
-        element_types = ["who", "what", "when", "where", "how", "why"]
+        element_types = ["who", "what", "when", "where", "how", "why", "platform"]
 
         for element_type in element_types:
             if element_type not in llm_data:
@@ -280,7 +283,7 @@ class TextExtractor(BaseExtractor):
 
             question = ClaimQuestion(
                 question_type=element_type,  # type: ignore
-                question_text=value,
+                answer_text=value,
                 related_entity=element.get("related_entity"),
                 confidence=float(element.get("confidence", 0.5)),
             )

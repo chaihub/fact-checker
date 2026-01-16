@@ -279,7 +279,7 @@ class TestExtractedClaim:
         """Test that ExtractedClaim can have questions."""
         question = ClaimQuestion(
             question_type="who",
-            question_text="Who made this claim?",
+            answer_text="Alice made this claim",
             confidence=0.85,
         )
         claim = ExtractedClaim(
@@ -298,12 +298,12 @@ class TestExtractedClaim:
         questions = [
             ClaimQuestion(
                 question_type="who",
-                question_text="Who made this claim?",
+                answer_text="Bharat made this claim",
                 confidence=0.85,
             ),
             ClaimQuestion(
                 question_type="when",
-                question_text="When did this happen?",
+                answer_text="When did this happen?",
                 related_entity="event",
                 confidence=0.75,
             ),
@@ -331,13 +331,13 @@ class TestClaimQuestion:
         """Test that question_type is required."""
         with pytest.raises(ValidationError, match="question_type"):
             ClaimQuestion(
-                question_text="Who made this claim?",
+                answer_text="Chinmayee made this claim",
                 confidence=0.85,
             )
 
-    def test_claim_question_missing_question_text(self):
-        """Test that question_text is required."""
-        with pytest.raises(ValidationError, match="question_text"):
+    def test_claim_question_missing_answer_text(self):
+        """Test that answer_text is required."""
+        with pytest.raises(ValidationError, match="answer_text"):
             ClaimQuestion(
                 question_type="who",
                 confidence=0.85,
@@ -348,15 +348,15 @@ class TestClaimQuestion:
         with pytest.raises(ValidationError, match="confidence"):
             ClaimQuestion(
                 question_type="who",
-                question_text="Who made this claim?",
+                answer_text="Dilip made this claim",
             )
 
     def test_claim_question_valid_question_types(self):
         """Test all valid question_type values."""
-        for q_type in ["who", "when", "where", "what", "how", "why"]:
+        for q_type in ["who", "when", "where", "what", "how", "why", "platform"]:
             question = ClaimQuestion(
                 question_type=q_type,
-                question_text=f"Test {q_type} question",
+                answer_text=f"Test {q_type} question",
                 confidence=0.85,
             )
             assert question.question_type == q_type
@@ -366,7 +366,7 @@ class TestClaimQuestion:
         with pytest.raises(ValidationError, match="question_type"):
             ClaimQuestion(
                 question_type="invalid_type",
-                question_text="Test question",
+                answer_text="Test question",
                 confidence=0.85,
             )
 
@@ -374,7 +374,7 @@ class TestClaimQuestion:
         """Test that related_entity is optional."""
         question = ClaimQuestion(
             question_type="who",
-            question_text="Who made this claim?",
+            answer_text="Ela made this claim",
             confidence=0.85,
         )
         assert question.related_entity is None
@@ -383,7 +383,7 @@ class TestClaimQuestion:
         """Test that related_entity can be provided."""
         question = ClaimQuestion(
             question_type="who",
-            question_text="Who made this claim?",
+            answer_text="Farhad made this claim",
             related_entity="John Doe",
             confidence=0.85,
         )
@@ -394,30 +394,30 @@ class TestClaimQuestion:
         for conf_value in [0.0, 0.5, 1.0]:
             question = ClaimQuestion(
                 question_type="who",
-                question_text="Who made this claim?",
+                answer_text="George made this claim",
                 confidence=conf_value,
             )
             assert question.confidence == conf_value
 
-    def test_claim_question_empty_question_text_fails(self):
-        """Test that empty question_text fails validation."""
-        with pytest.raises(ValidationError):
-            ClaimQuestion(
-                question_type="who",
-                question_text="",
-                confidence=0.85,
-            )
+    def test_claim_question_empty_answer_text_allowed(self):
+        """Test that empty answer_text is allowed (no validation)."""
+        question = ClaimQuestion(
+            question_type="who",
+            answer_text="",
+            confidence=0.85,
+        )
+        assert question.answer_text == ""
 
     def test_claim_question_full_creation(self):
         """Test successful creation of complete ClaimQuestion."""
         question = ClaimQuestion(
             question_type="when",
-            question_text="When did this event occur?",
+            answer_text="This event occurred yesterday",
             related_entity="event",
             confidence=0.92,
         )
         assert question.question_type == "when"
-        assert question.question_text == "When did this event occur?"
+        assert question.answer_text == "This event occurred yesterday"
         assert question.related_entity == "event"
         assert question.confidence == 0.92
 
@@ -429,9 +429,9 @@ class TestClaimQuestion:
 class TestSearchResult:
     """Tests for SearchResult model."""
 
-    def test_search_result_missing_platform(self):
-        """Test that platform is required."""
-        with pytest.raises(ValidationError, match="platform"):
+    def test_search_result_missing_external_source(self):
+        """Test that external_source is required."""
+        with pytest.raises(ValidationError, match="external_source"):
             SearchResult(
                 content="test",
                 author="user",
@@ -443,7 +443,7 @@ class TestSearchResult:
         """Test that content is required."""
         with pytest.raises(ValidationError, match="content"):
             SearchResult(
-                platform="twitter",
+                external_source="twitter",
                 author="user",
                 url="https://twitter.com/user/123",
                 timestamp=datetime.now(),
@@ -453,7 +453,7 @@ class TestSearchResult:
         """Test that author is required."""
         with pytest.raises(ValidationError, match="author"):
             SearchResult(
-                platform="twitter",
+                external_source="twitter",
                 content="test",
                 url="https://twitter.com/user/123",
                 timestamp=datetime.now(),
@@ -463,7 +463,7 @@ class TestSearchResult:
         """Test that url is required."""
         with pytest.raises(ValidationError, match="url"):
             SearchResult(
-                platform="twitter",
+                external_source="twitter",
                 content="test",
                 author="user",
                 timestamp=datetime.now(),
@@ -473,7 +473,7 @@ class TestSearchResult:
         """Test that timestamp is required."""
         with pytest.raises(ValidationError, match="timestamp"):
             SearchResult(
-                platform="twitter",
+                external_source="twitter",
                 content="test",
                 author="user",
                 url="https://twitter.com/user/123",
@@ -482,7 +482,7 @@ class TestSearchResult:
     def test_search_result_timestamp_from_iso_string(self):
         """Test that ISO string is converted to datetime."""
         result = SearchResult(
-            platform="twitter",
+            external_source="twitter",
             content="test",
             author="user",
             url="https://twitter.com/user/123",
@@ -494,7 +494,7 @@ class TestSearchResult:
         """Test that datetime object is accepted as-is."""
         now = datetime.now()
         result = SearchResult(
-            platform="twitter",
+            external_source="twitter",
             content="test",
             author="user",
             url="https://twitter.com/user/123",
@@ -505,7 +505,7 @@ class TestSearchResult:
     def test_search_result_default_engagement(self):
         """Test that engagement defaults to empty dict."""
         result = SearchResult(
-            platform="twitter",
+            external_source="twitter",
             content="test",
             author="user",
             url="https://twitter.com/user/123",
@@ -516,7 +516,7 @@ class TestSearchResult:
     def test_search_result_default_metadata(self):
         """Test that metadata defaults to empty dict."""
         result = SearchResult(
-            platform="twitter",
+            external_source="twitter",
             content="test",
             author="user",
             url="https://twitter.com/user/123",
@@ -529,7 +529,7 @@ class TestSearchResult:
         engagement = {"likes": 100, "retweets": 50}
         metadata = {"source": "official"}
         result = SearchResult(
-            platform="twitter",
+            external_source="twitter",
             content="test",
             author="user",
             url="https://twitter.com/user/123",
@@ -583,7 +583,7 @@ class TestReference:
             Reference(
                 url="https://example.com",
                 snippet="test snippet",
-                platform="twitter",
+                external_source="twitter",
             )
 
     def test_reference_missing_url(self):
@@ -592,7 +592,7 @@ class TestReference:
             Reference(
                 title="Test Article",
                 snippet="test snippet",
-                platform="twitter",
+                external_source="twitter",
             )
 
     def test_reference_missing_snippet(self):
@@ -601,12 +601,12 @@ class TestReference:
             Reference(
                 title="Test Article",
                 url="https://example.com",
-                platform="twitter",
+                external_source="twitter",
             )
 
-    def test_reference_missing_platform(self):
-        """Test that platform is required."""
-        with pytest.raises(ValidationError, match="platform"):
+    def test_reference_missing_external_source(self):
+        """Test that external_source is required."""
+        with pytest.raises(ValidationError, match="external_source"):
             Reference(
                 title="Test Article",
                 url="https://example.com",
@@ -619,12 +619,12 @@ class TestReference:
             title="Test Article",
             url="https://example.com",
             snippet="test snippet",
-            platform="twitter",
+            external_source="twitter",
         )
         assert ref.title == "Test Article"
         assert ref.url == "https://example.com"
         assert ref.snippet == "test snippet"
-        assert ref.platform == "twitter"
+        assert ref.external_source == "twitter"
 
 
 # ============================================================================
@@ -683,7 +683,7 @@ class TestEvidence:
     def test_evidence_supporting_results_single_item(self):
         """Test Evidence with single SearchResult."""
         result = SearchResult(
-            platform="twitter",
+            external_source="twitter",
             content="test",
             author="user",
             url="https://twitter.com/user/123",
@@ -702,14 +702,14 @@ class TestEvidence:
         """Test Evidence with multiple SearchResults."""
         results = [
             SearchResult(
-                platform="twitter",
+                external_source="twitter",
                 content="test1",
                 author="user1",
                 url="https://twitter.com/user/1",
                 timestamp=datetime.now(),
             ),
             SearchResult(
-                platform="bluesky",
+                external_source="bluesky",
                 content="test2",
                 author="user2",
                 url="https://bluesky.com/user/2",
@@ -750,7 +750,7 @@ class TestEvidence:
             confidence=0.95,
             supporting_results=[
                 {
-                    "platform": "twitter",
+                    "external_source": "twitter",
                     "content": "test",
                     "author": "user",
                     "url": "https://twitter.com/user/123",
@@ -845,36 +845,36 @@ class TestFactCheckResponse:
             )
 
     def test_factcheck_response_missing_evidence(self):
-        """Test that evidence is required."""
-        with pytest.raises(ValidationError, match="evidence"):
-            FactCheckResponse(
-                request_id="req1",
-                claim_id="claim1",
-                verdict=VerdictEnum.AUTHENTIC,
-                confidence=0.95,
-                references=[],
-                explanation="test",
-                search_queries_used=[],
-                cached=False,
-                processing_time_ms=100.0,
-                timestamp=datetime.now(),
-            )
+        """Test that evidence is optional and can be None."""
+        response = FactCheckResponse(
+            request_id="req1",
+            claim_id="claim1",
+            verdict=VerdictEnum.AUTHENTIC,
+            confidence=0.95,
+            references=[],
+            explanation="test",
+            search_queries_used=[],
+            cached=False,
+            processing_time_ms=100.0,
+            timestamp=datetime.now(),
+        )
+        assert response.evidence is None
 
     def test_factcheck_response_missing_references(self):
-        """Test that references is required."""
-        with pytest.raises(ValidationError, match="references"):
-            FactCheckResponse(
-                request_id="req1",
-                claim_id="claim1",
-                verdict=VerdictEnum.AUTHENTIC,
-                confidence=0.95,
-                evidence=[],
-                explanation="test",
-                search_queries_used=[],
-                cached=False,
-                processing_time_ms=100.0,
-                timestamp=datetime.now(),
-            )
+        """Test that references is optional and can be None."""
+        response = FactCheckResponse(
+            request_id="req1",
+            claim_id="claim1",
+            verdict=VerdictEnum.AUTHENTIC,
+            confidence=0.95,
+            evidence=[],
+            explanation="test",
+            search_queries_used=[],
+            cached=False,
+            processing_time_ms=100.0,
+            timestamp=datetime.now(),
+        )
+        assert response.references is None
 
     def test_factcheck_response_missing_explanation(self):
         """Test that explanation is required."""
@@ -893,20 +893,20 @@ class TestFactCheckResponse:
             )
 
     def test_factcheck_response_missing_search_queries_used(self):
-        """Test that search_queries_used is required."""
-        with pytest.raises(ValidationError, match="search_queries_used"):
-            FactCheckResponse(
-                request_id="req1",
-                claim_id="claim1",
-                verdict=VerdictEnum.AUTHENTIC,
-                confidence=0.95,
-                evidence=[],
-                references=[],
-                explanation="test",
-                cached=False,
-                processing_time_ms=100.0,
-                timestamp=datetime.now(),
-            )
+        """Test that search_queries_used is optional and can be None."""
+        response = FactCheckResponse(
+            request_id="req1",
+            claim_id="claim1",
+            verdict=VerdictEnum.AUTHENTIC,
+            confidence=0.95,
+            evidence=[],
+            references=[],
+            explanation="test",
+            cached=False,
+            processing_time_ms=100.0,
+            timestamp=datetime.now(),
+        )
+        assert response.search_queries_used is None
 
     def test_factcheck_response_missing_cached(self):
         """Test that cached is required."""
@@ -1037,7 +1037,7 @@ class TestFactCheckResponse:
             title="Test",
             url="https://example.com",
             snippet="snippet",
-            platform="twitter",
+            external_source="twitter",
         )
         response = FactCheckResponse(
             request_id="req1",

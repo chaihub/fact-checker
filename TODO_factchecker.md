@@ -5,12 +5,8 @@
 ## 🚀 START HERE
 
 ### Current Priority Tasks
-- Implement LLM Configuration System (Phase 2.3, Phase 3.3, Phase 4.2, Phase 7.3.1)
-  - Integrate into TextExtractor, ImageExtractor, SearchQueryBuilder, ResponseGenerator
-  - Use Google Gemini API with configurable models and parameters
-- Create claim extractor using AI API (relies on LLM system)
-- Create alternate image extractor using multiple questions to AI API (relies on LLM system)
-
+- Implement claim verification for one external source within each source category
+- Add a feature to specify if the match is exact or approximate
 ---
 
 ## Overview
