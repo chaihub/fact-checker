@@ -23,6 +23,8 @@ from factchecker.tests.fixtures import (
     sample_response,
     sample_extracted_claim,
     sample_search_results,
+    sample_request_2,
+    sample_extracted_claim_2,
 )
 
 
@@ -298,104 +300,164 @@ class TestPipeline64b:
             mock_cache.get.return_value = None
             mock_extractors.extract.return_value = sample_extracted_claim
 
-            response = await pipeline.check_claim(sample_request)
+            try:
+                response = await pipeline.check_claim(sample_request)
 
-            # Verify complete response structure
-            assert isinstance(response, FactCheckResponse)
-            assert response.request_id is not None
-            assert response.cached is False
-            assert response.processing_time_ms > 0
+                # Verify complete response structure
+                assert isinstance(response, FactCheckResponse)
+                assert response.request_id is not None
+                assert response.cached is False
+                assert response.processing_time_ms > 0
+            finally:
+                # Dump logged data at the end of the test
+                if caplog.records:
+                    print("\n=== Logged Data ===")
+                    for record in caplog.records:
+                        print(f"{record.levelname}: {record.message}")
+                    print("=== End of Logged Data ===\n")
 
     @pytest.mark.asyncio
     async def test_full_pipeline_data_flow_request_to_response(
-        self, pipeline, mock_cache, mock_extractors, sample_request, sample_extracted_claim
+        self, pipeline, mock_cache, mock_extractors, sample_request, sample_extracted_claim, caplog
     ):
         """Test 6.2.4b: Verify data flows correctly through all stages."""
-        mock_cache.get.return_value = None
-        mock_extractors.extract.return_value = sample_extracted_claim
+        with caplog.at_level(logging.INFO):
+            mock_cache.get.return_value = None
+            mock_extractors.extract.return_value = sample_extracted_claim
 
-        response = await pipeline.check_claim(sample_request)
+            try:
+                response = await pipeline.check_claim(sample_request)
 
-        # Verify complete chain: Request → ExtractedClaim → SearchParams → Results → Response
-        assert sample_request.request_id == response.request_id
-        assert response.verdict in [v.value for v in VerdictEnum]
-        assert len(response.evidence) > 0
-        assert len(response.references) > 0
+                # Verify complete chain: Request → ExtractedClaim → SearchParams → Results → Response
+                assert sample_request.request_id == response.request_id
+                assert response.verdict in [v.value for v in VerdictEnum]
+                assert len(response.evidence) > 0
+                assert len(response.references) > 0
+            finally:
+                # Dump logged data at the end of the test
+                if caplog.records:
+                    print("\n=== Logged Data ===")
+                    for record in caplog.records:
+                        print(f"{record.levelname}: {record.message}")
+                    print("=== End of Logged Data ===\n")
+
+    @pytest.mark.asyncio
+    async def test_full_pipeline_data_flow_request_to_response_2(
+        self, pipeline, mock_cache, mock_extractors, sample_request_2, sample_extracted_claim_2, caplog
+    ):
+        """Test claim verification: Verify data flows correctly through all stages."""
+        with caplog.at_level(logging.INFO):
+            mock_cache.get.return_value = None
+            mock_extractors.extract.return_value = sample_extracted_claim_2
+
+            try:
+                response = await pipeline.check_claim(sample_request_2)
+
+                # Verify complete chain: Request → ExtractedClaim → SearchParams → Results → Response
+                assert sample_request_2.request_id == response.request_id
+                assert response.verdict in [v.value for v in VerdictEnum]
+                assert len(response.evidence) > 0
+                assert len(response.references) > 0
+            finally:
+                # Dump logged data at the end of the test
+                if caplog.records:
+                    print("\n=== Logged Data ===")
+                    for record in caplog.records:
+                        print(f"{record.levelname}: {record.message}")
+                    print("=== End of Logged Data ===\n")
 
     @pytest.mark.asyncio
     async def test_full_pipeline_with_various_claim_types(
-        self, pipeline, mock_cache, mock_extractors
+        self, pipeline, mock_cache, mock_extractors, caplog
     ):
         """Test 6.2.4b: Test with various claim types (text, image, mixed)."""
-        mock_cache.get.return_value = None
+        with caplog.at_level(logging.INFO):
+            mock_cache.get.return_value = None
 
-        # Test cases: (claim_text, image_data, raw_input_type, extracted_from)
-        claim_types = [
-            # Text-only claim
-            ("The Earth is round", None, "text_only", "text"),
-            # Image-only claim
-            (None, b"fake_image_data_1", "image_only", "image"),
-            # Mixed: both text and image
-            ("COVID vaccines contain microchips", b"fake_image_data_2", "both", "hybrid"),
-            # Another text-only claim
-            ("Climate change is real", None, "text_only", "text"),
-        ]
+            # Test cases: (claim_text, image_data, raw_input_type, extracted_from)
+            claim_types = [
+                # Text-only claim
+                ("The Earth is round", None, "text_only", "text"),
+                # Image-only claim
+                (None, b"fake_image_data_1", "image_only", "image"),
+                # Mixed: both text and image
+                ("COVID vaccines contain microchips", b"fake_image_data_2", "both", "hybrid"),
+                # Another text-only claim
+                ("Climate change is real", None, "text_only", "text"),
+            ]
 
-        for claim_text, image_data, raw_input_type, extracted_from in claim_types:
-            request = FactCheckRequest(
-                claim_text=claim_text, image_data=image_data, user_id="test_user"
-            )
-            
-            # Extract claim text for the ExtractedClaim object
-            extracted_text = claim_text or f"Extracted from {raw_input_type}"
-            
-            extracted = ExtractedClaim(
-                claim_text=extracted_text,
-                extracted_from=extracted_from,
-                confidence=0.95,
-                raw_input_type=raw_input_type,
-                metadata={},
-            )
-            mock_extractors.extract.return_value = extracted
+            try:
+                for claim_text, image_data, raw_input_type, extracted_from in claim_types:
+                    request = FactCheckRequest(
+                        claim_text=claim_text, image_data=image_data, user_id="test_user"
+                    )
+                    
+                    # Extract claim text for the ExtractedClaim object
+                    extracted_text = claim_text or f"Extracted from {raw_input_type}"
+                    
+                    extracted = ExtractedClaim(
+                        claim_text=extracted_text,
+                        extracted_from=extracted_from,
+                        confidence=0.95,
+                        raw_input_type=raw_input_type,
+                        metadata={},
+                    )
+                    mock_extractors.extract.return_value = extracted
 
-            response = await pipeline.check_claim(request)
+                    response = await pipeline.check_claim(request)
 
-            assert response is not None
-            assert response.verdict is not None
-            assert isinstance(response.verdict, VerdictEnum)
+                    assert response is not None
+                    assert response.verdict is not None
+                    assert isinstance(response.verdict, VerdictEnum)
+            finally:
+                # Dump logged data at the end of the test
+                if caplog.records:
+                    print("\n=== Logged Data ===")
+                    for record in caplog.records:
+                        print(f"{record.levelname}: {record.message}")
+                    print("=== End of Logged Data ===\n")
 
     @pytest.mark.asyncio
     async def test_full_pipeline_response_structure_validation(
-        self, pipeline, mock_cache, mock_extractors, sample_request, sample_extracted_claim
+        self, pipeline, mock_cache, mock_extractors, sample_request, sample_extracted_claim, caplog
     ):
         """Test 6.2.4b: Verify output matches expected FactCheckResponse structure."""
-        mock_cache.get.return_value = None
-        mock_extractors.extract.return_value = sample_extracted_claim
+        with caplog.at_level(logging.INFO):
+            mock_cache.get.return_value = None
+            mock_extractors.extract.return_value = sample_extracted_claim
 
-        response = await pipeline.check_claim(sample_request)
+            try:
+                response = await pipeline.check_claim(sample_request)
 
-        # Validate all required fields are present and properly typed
-        required_fields = {
-            "request_id": str,
-            "claim_id": str,
-            "verdict": VerdictEnum,
-            "confidence": float,
-            "evidence": list,
-            "references": list,
-            "explanation": str,
-            "search_queries_used": list,
-            "cached": bool,
-            "processing_time_ms": float,
-            "timestamp": datetime,
-        }
+                # Validate all required fields are present and properly typed
+                required_fields = {
+                    "request_id": str,
+                    "claim_id": str,
+                    "verdict": VerdictEnum,
+                    "confidence": float,
+                    "evidence": list,
+                    "references": list,
+                    "explanation": str,
+                    "search_queries_used": list,
+                    "cached": bool,
+                    "processing_time_ms": float,
+                    "timestamp": datetime,
+                }
 
-        for field, expected_type in required_fields.items():
-            assert hasattr(response, field)
-            value = getattr(response, field)
-            if field == "verdict":
-                assert isinstance(value, expected_type)
-            else:
-                assert isinstance(value, expected_type)
+                for field, expected_type in required_fields.items():
+                    assert hasattr(response, field)
+                    value = getattr(response, field)
+                    if field == "verdict":
+                        assert isinstance(value, expected_type)
+                    else:
+                        assert isinstance(value, expected_type)
+            finally:
+                # Dump logged data at the end of the test
+                if caplog.records:
+                    print("\n=== Logged Data ===")
+                    for record in caplog.records:
+                        print(f"{record.levelname}: {record.message}")
+                    print("=== End of Logged Data ===\n")
 
 
 # ============================================================================
@@ -407,50 +469,68 @@ class TestPipeline64c:
 
     @pytest.mark.asyncio
     async def test_stage_chaining_data_propagation(
-        self, pipeline, mock_cache, mock_extractors, sample_request, sample_extracted_claim
+        self, pipeline, mock_cache, mock_extractors, sample_request, sample_extracted_claim, caplog
     ):
         """Test 6.2.4c: Verify stage output becomes next stage input."""
-        mock_cache.get.return_value = None
-        mock_extractors.extract.return_value = sample_extracted_claim
+        with caplog.at_level(logging.INFO):
+            mock_cache.get.return_value = None
+            mock_extractors.extract.return_value = sample_extracted_claim
 
-        # Test individual stage outputs feed into next stage
-        extracted = await pipeline._extract_claim(sample_request)
-        assert isinstance(extracted, ExtractedClaim)
+            try:
+                # Test individual stage outputs feed into next stage
+                extracted = await pipeline._extract_claim(sample_request)
+                assert isinstance(extracted, ExtractedClaim)
 
-        results = await pipeline._search_sources(extracted)
-        assert isinstance(results, list)
+                results = await pipeline._search_sources(extracted)
+                assert isinstance(results, list)
 
-        response = await pipeline._generate_response(sample_request, extracted, results, datetime.now())
-        assert isinstance(response, FactCheckResponse)
+                response = await pipeline._generate_response(sample_request, extracted, results, datetime.now())
+                assert isinstance(response, FactCheckResponse)
+            finally:
+                # Dump logged data at the end of the test
+                if caplog.records:
+                    print("\n=== Logged Data ===")
+                    for record in caplog.records:
+                        print(f"{record.levelname}: {record.message}")
+                    print("=== End of Logged Data ===\n")
 
     @pytest.mark.asyncio
     async def test_error_propagation_through_pipeline(
-        self, pipeline, mock_cache, mock_extractors, sample_request
+        self, pipeline, mock_cache, mock_extractors, sample_request, caplog
     ):
         """Test 6.2.4c: Test error handling with detailed context."""
-        mock_cache.get.side_effect = Exception("Cache error")
-        mock_extractors.extract.return_value = None
+        with caplog.at_level(logging.INFO):
+            mock_cache.get.side_effect = Exception("Cache error")
+            mock_extractors.extract.return_value = None
 
-        # Error in cache should be caught and returned as error response
-        response = await pipeline.check_claim(sample_request)
+            try:
+                # Error in cache should be caught and returned as error response
+                response = await pipeline.check_claim(sample_request)
 
-        # Verify error response structure
-        assert isinstance(response, FactCheckResponse)
-        assert response.verdict == VerdictEnum.ERROR
-        assert response.confidence == 0.0
-        assert response.request_id is not None
+                # Verify error response structure
+                assert isinstance(response, FactCheckResponse)
+                assert response.verdict == VerdictEnum.ERROR
+                assert response.confidence == 0.0
+                assert response.request_id is not None
 
-        # Verify error details are captured
-        assert response.error_details is not None
-        assert response.error_details.failed_stage == "Cache Lookup"
-        assert "_check_cache" in response.error_details.failed_function
-        assert response.error_details.error_type == "Exception"
-        assert "Cache error" in response.error_details.error_message
-        assert response.error_details.input_parameters is not None
-        assert response.error_details.traceback_summary is not None
+                # Verify error details are captured
+                assert response.error_details is not None
+                assert response.error_details.failed_stage == "Cache Lookup"
+                assert "_check_cache" in response.error_details.failed_function
+                assert response.error_details.error_type == "Exception"
+                assert "Cache error" in response.error_details.error_message
+                assert response.error_details.input_parameters is not None
+                assert response.error_details.traceback_summary is not None
 
-        # Verify explanation mentions stage
-        assert "Cache Lookup" in response.explanation
+                # Verify explanation mentions stage
+                assert "Cache Lookup" in response.explanation
+            finally:
+                # Dump logged data at the end of the test
+                if caplog.records:
+                    print("\n=== Logged Data ===")
+                    for record in caplog.records:
+                        print(f"{record.levelname}: {record.message}")
+                    print("=== End of Logged Data ===\n")
 
     @pytest.mark.asyncio
     async def test_logging_at_each_stage(
@@ -461,12 +541,20 @@ class TestPipeline64c:
             mock_cache.get.return_value = None
             mock_extractors.extract.return_value = sample_extracted_claim
 
-            response = await pipeline.check_claim(sample_request)
+            try:
+                response = await pipeline.check_claim(sample_request)
 
-            # Verify logging occurred
-            log_messages = [record.message for record in caplog.records]
-            assert any("Fact-check request started" in msg for msg in log_messages)
-            assert any("Fact-check request completed" in msg for msg in log_messages)
+                # Verify logging occurred
+                log_messages = [record.message for record in caplog.records]
+                assert any("Fact-check request started" in msg for msg in log_messages)
+                assert any("Fact-check request completed" in msg for msg in log_messages)
+            finally:
+                # Dump logged data at the end of the test
+                if caplog.records:
+                    print("\n=== Logged Data ===")
+                    for record in caplog.records:
+                        print(f"{record.levelname}: {record.message}")
+                    print("=== End of Logged Data ===\n")
 
     @pytest.mark.asyncio
     async def test_stage_method_chaining_integration(
@@ -476,10 +564,18 @@ class TestPipeline64c:
         with caplog.at_level(logging.DEBUG):
             mock_cache.get.return_value = None
 
-            # Execute full pipeline
-            response = await pipeline.check_claim(sample_request)
+            try:
+                # Execute full pipeline
+                response = await pipeline.check_claim(sample_request)
 
-            # Verify each stage was called in correct order
+                # Verify each stage was called in correct order
+            finally:
+                # Dump logged data at the end of the test
+                if caplog.records:
+                    print("\n=== Logged Data ===")
+                    for record in caplog.records:
+                        print(f"{record.levelname}: {record.message}")
+                    print("=== End of Logged Data ===\n")
             assert response is not None
             assert mock_cache.get.called
             # Pipeline uses real extractors (text_extractor, image_extractor) not mock_extractors

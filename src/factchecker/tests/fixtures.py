@@ -5,6 +5,7 @@ from datetime import datetime
 from factchecker.core.models import (
     FactCheckRequest,
     ExtractedClaim,
+    ClaimQuestion,
     SearchResult,
     FactCheckResponse,
     VerdictEnum,
@@ -83,4 +84,62 @@ def sample_response():
         cached=False,
         processing_time_ms=250.5,
         timestamp=datetime.now(),
+    )
+
+
+@pytest.fixture
+def sample_request_2():
+    """FactCheckRequest for claim verification testing."""
+    return FactCheckRequest(
+        claim_text = (
+            "The Indian Express tweets that the Pune Municipal Corporation (PMC) has initiated "
+            "Artificial Intelligence (AI) skill development training for its senior officials "
+            "next week. It will be held at SP College."
+        ),
+        image_data=None,
+        user_id="verify_user_789",
+        source_platform="twitter",
+    )
+
+
+@pytest.fixture
+def sample_extracted_claim_2():
+    """ExtractedClaim with questions for claim verification testing."""
+    return ExtractedClaim(
+        claim_text = (
+            "The Indian Express tweets that the Pune Municipal Corporation (PMC) has initiated "
+            "Artificial Intelligence (AI) skill development training for its senior officials "
+            "next week. It will be held at SP College."
+        ),
+        extracted_from="text",
+        confidence=0.9,
+        raw_input_type="text_only",
+        metadata={"text_length": 205},
+        questions=[
+            ClaimQuestion(
+                question_type="who",
+                answer_text="The Pune Municipal Corporation (PMC)",
+                confidence=0.95,
+            ),
+            ClaimQuestion(
+                question_type="what",
+                answer_text="initiated Artificial Intelligence (AI) skill development training for its senior officials",
+                confidence=0.9,
+            ),
+            ClaimQuestion(
+                question_type="where",
+                answer_text="SP College",
+                confidence=0.8,
+            ),
+            ClaimQuestion(
+                question_type="when",
+                answer_text="next week",
+                confidence=0.8,
+            ),
+            ClaimQuestion(
+                question_type="platform",
+                answer_text="twitter",
+                confidence=0.9,
+            )
+        ]
     )

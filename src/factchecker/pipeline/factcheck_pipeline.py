@@ -258,8 +258,13 @@ class FactCheckPipeline(IPipeline):
         all_search_results: List[SearchResult] = []
 
         # Step 0: Determine default source order from configured sequence numbers
+        # Filter out sources with negative sequence values (they are disabled)
         source_order = sorted(
-            EXTERNAL_SOURCES.keys(),
+            [
+                key
+                for key in EXTERNAL_SOURCES.keys()
+                if EXTERNAL_SOURCES[key].sequence >= 0
+            ],
             key=lambda key: EXTERNAL_SOURCES[key].sequence,
         )
 
@@ -291,7 +296,11 @@ class FactCheckPipeline(IPipeline):
                 where_answer_lower = where_a.answer_text.lower()
                 for platform in list(claim_source_order):
                     config = EXTERNAL_SOURCES[platform]
-                    if platform.lower() == where_answer_lower:
+                    # Only reorder if the matched source is enabled (non-negative sequence)
+                    if (
+                        platform.lower() == where_answer_lower
+                        and config.sequence >= 0
+                    ):
                         claim_source_order.remove(platform)
                         claim_source_order.insert(0, platform)
                         break
@@ -402,7 +411,7 @@ class FactCheckPipeline(IPipeline):
     async def _generate_response(
         self,
         request: FactCheckRequest,
-        claim: ExtractedClaim,
+        claims: List[ExtractedClaim],
         results: List[SearchResult],
         start_time: datetime,
     ) -> FactCheckResponse:
@@ -413,8 +422,9 @@ class FactCheckPipeline(IPipeline):
         processing_time_ms = (datetime.now() - start_time).total_seconds() * 1000
         
         # Mock evidence construction
+        # TODO: Handle all claims, not only claims[0]
         evidence = Evidence(
-            claim_fragment=claim.claim_text[:50],
+            claim_fragment=claims[0].claim_text[:50],
             finding="Mock finding based on search results",
             supporting_results=results[:2] if results else [],
             confidence=0.75,

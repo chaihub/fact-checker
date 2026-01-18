@@ -23,7 +23,7 @@ class SourceConfig(BaseModel):
     category: SourceCategory
     class_name: str
     display_name: str
-    sequence: int  # Lower values are checked earlier in the default order
+    sequence: int  # Lower values are checked earlier in the default order; negative values are skipped
 
 
 EXTERNAL_SOURCES: dict[str, SourceConfig] = {
@@ -37,19 +37,19 @@ EXTERNAL_SOURCES: dict[str, SourceConfig] = {
         category=SourceCategory.SOC,
         class_name="BlueSkySearcher",
         display_name="BlueSky",
-        sequence=2,
+        sequence=-2,
     ),
     "news": SourceConfig(
         category=SourceCategory.NWS,
         class_name="NewsSearcher",
         display_name="News",
-        sequence=3,
+        sequence=-3,
     ),
     "gov": SourceConfig(
         category=SourceCategory.GOV,
         class_name="GovernmentSearcher",
         display_name="Government",
-        sequence=4,
+        sequence=-4,
     ),
 }
 
